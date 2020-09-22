@@ -1,0 +1,14 @@
+---
+- name: update authorized keys
+  authorized_key:
+    user: '{{ username }}'
+    key: |
+      {%- for user in ssh_users -%}
+      {% if user in ssh_keys %}
+      {%- raw -%}
+      {% endraw -%}{{ ssh_keys[user] }} {{ user }}{%- raw -%}(ansible)
+      {% endraw -%}
+      {% endif %}
+      {%- endfor -%}
+    state: present
+    exclusive: True

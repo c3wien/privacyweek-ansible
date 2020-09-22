@@ -1,0 +1,67 @@
+---
+- name: install python
+  raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+- name: 'install aptitude'
+  raw: apt-get -y install aptitude
+
+
+- name: ensure sudo group
+  group:
+    name: sudo
+    state: present
+
+- name: enable NOPASSWD sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%sudo'
+    line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+
+- name: ensure user is present
+  user: 
+    name: "{{ username }}"
+    shell: /bin/bash
+    groups: sudo
+    append: yes
+    state: present
+
+- name: updating authorized_keys
+  import_role:
+    name: authorized_keys
+
+- name: SSH port {{ ssh_port }}
+  lineinfile:
+    dest: "/etc/ssh/sshd_config"
+    regexp: "^Port"
+    line: "Port {{ ssh_port }}"
+  notify: "restart sshd"
+
+- name: SSH disable password auth
+  lineinfile:
+    dest: "/etc/ssh/sshd_config"
+    regexp: "^PasswordAuthentication"
+    line: "PasswordAuthentication no"
+  notify: "restart sshd"
+
+- name: Install base packages
+  apt:
+    state: present
+    name: [ aptitude, less, sudo, vim-nox, htop, bwm-ng, dnsutils, psmisc, whois, mtr-tiny, iputils-tracepath, bash-completion, strace, lsof, ltrace, tcpdump, rsync, screen, debsums, ufw, net-tools, apt-transport-https, moreutils ]
+
+- name: UFW logging disable
+  ufw:
+    logging: off
+
+- name: UFW ports
+  ufw:
+    rule: allow
+    port: '{{ item }}'
+    proto: tcp
+  with_items:
+    - '{{ ssh_port }}'
+
+- name: enable UFW
+  ufw:
+    state: enabled
+
