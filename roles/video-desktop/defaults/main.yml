@@ -8,4 +8,5 @@ pulseaudio_defaultsamplerate: 48000
 pulseaudio_defaultsamplechannels: 2
 
 desktop_color: '#954b97' # pw20 violet
+desktop_background_image: "files/misc/PW20_Key_Visual_QF_Karabiner_RGB_oB_oT.jpg"
 

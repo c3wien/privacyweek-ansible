@@ -44,7 +44,7 @@
 
 - name: copy desktop background image
   copy:
-    src: files/misc/PW20_Key_Visual_QF_Karabiner_RGB_oB_oT.jpg
+    src: "{{ desktop_background_image }}"
     dest: "/home/{{ desktop_username }}/desktop-background.jpg"
 
 - name: set desktop background
