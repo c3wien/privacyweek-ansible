@@ -1,3 +1,5 @@
 ---
 
 ssh_port: 22
+username: "debian"
+hostname: "{{ inventory_hostname_short }}"

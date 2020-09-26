@@ -4,6 +4,23 @@
 - name: 'install aptitude'
   raw: apt-get -y install aptitude
 
+- name: Install base packages
+  apt:
+    state: present
+    name: [ aptitude, less, sudo, vim-nox, htop, bwm-ng, dnsutils, psmisc, whois, mtr-tiny, iputils-tracepath, bash-completion, strace, lsof, ltrace, tcpdump, rsync, screen, debsums, ufw, net-tools, apt-transport-https, moreutils ]
+
+- name: Set hostname
+  hostname:
+    name: "{{ hostname }}"
+  notify: "reboot"
+
+- name: update /etc/hosts with hostname
+  lineinfile:
+    dest: /etc/hosts
+    state: present
+    regexp: '^127\.0\.1\.1'
+    line: '127.0.1.1 {{ hostname }}'
+    path: /etc/hosts
 
 - name: ensure sudo group
   group:
@@ -44,10 +61,10 @@
     line: "PasswordAuthentication no"
   notify: "restart sshd"
 
-- name: Install base packages
-  apt:
-    state: present
-    name: [ aptitude, less, sudo, vim-nox, htop, bwm-ng, dnsutils, psmisc, whois, mtr-tiny, iputils-tracepath, bash-completion, strace, lsof, ltrace, tcpdump, rsync, screen, debsums, ufw, net-tools, apt-transport-https, moreutils ]
+- name: remove root password
+  user:
+    name: root
+    password: ''
 
 - name: UFW logging disable
   ufw:

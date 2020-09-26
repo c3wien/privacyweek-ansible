@@ -1,0 +1,33 @@
+---
+- name: ensure desktop user is present, set groups
+  user: 
+    name: "{{ desktop_username }}"
+    shell: /bin/bash
+    groups: audio,video
+    append: yes
+    state: present
+
+- name: Install desktop packages
+  apt:
+    state: present
+    name: [ task-lxde-desktop, pulseaudio, pavucontrol, unclutter, chromium, chromium-driver ]
+
+- name: enable lightdm autologon
+  blockinfile:
+    path: /etc/lightdm/lightdm.conf
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+    insertafter: '#exit-on-failure=false'
+    content: |
+      autologin-user={{ desktop_username }}
+      autologin-user-timeout=0
+      exit-on-failure=false
+  notify: restart display
+
+# restart lightdm to init config structure
+- meta: flush_handlers
+
+- name: set up desktop
+  include_tasks: desktop-setup.yml
+
+- name: set up pulseaudio
+  include_tasks: pulseaudio.yml

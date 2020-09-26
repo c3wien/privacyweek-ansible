@@ -1,0 +1,14 @@
+---
+
+- name: set pulseaudio default-sample-rate
+  lineinfile:
+    dest: "/etc/pulse/daemon.conf"
+    regexp: "^default-sample-rate"
+    line: "default-sample-rate = {{ pulseaudio_defaultsamplerate }}"
+  notify: restart display
+
+- name: set pulseaudio default-sample-rate
+  lineinfile:
+    dest: "/etc/pulse/daemon.conf"
+    regexp: "^default-sample-channels"
+    line: "default-sample-channels = {{ pulseaudio_defaultsamplechannels }}"

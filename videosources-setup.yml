@@ -1,7 +1,0 @@
----
-
-- name: setting up video outputs
-  hosts: videosources
-  become: true
-  roles:
-    - role: pulseaudio-setup

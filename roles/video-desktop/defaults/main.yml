@@ -1,0 +1,11 @@
+---
+desktop_username: "{{ username }}"
+
+desktop_resolution_mode: 1280x720
+desktop_resolution_rate: 50
+
+pulseaudio_defaultsamplerate: 48000
+pulseaudio_defaultsamplechannels: 2
+
+desktop_color: '#954b97' # pw20 violet
+

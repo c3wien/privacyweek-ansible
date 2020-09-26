@@ -1,0 +1,6 @@
+---
+- name: restart lightdm
+  service: name=lightdm state=restarted
+- name: waiting for lightdm startup
+  pause:
+    seconds: 2

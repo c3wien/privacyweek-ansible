@@ -1,0 +1,10 @@
+---
+- name: setting up videosources
+  hosts: videosources
+  become: true
+  serial: 1
+  roles:
+    - role: video-desktop
+  tags:
+  - never
+  - videosources
