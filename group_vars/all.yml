@@ -2,10 +2,12 @@
 # all ssh keys
 ssh_keys:
   datacop: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC+KjkOctp2vwQxjJxwAjo2X139WrVj9Krx9cqGItj02rvbo5tSGuQ7HTfBOlB0ezZG2kLAS+kK5Gt3d2qyZo63Cn3XnfK8opGWxEbcBDbN/HrjAUjPUZG/Se5nOYBWvTKpLNe9+BG7CXpohh31u+gwZTXu1y0sXaS8Xi7z8J/v/3UtmHdrq+OuO4IakAnxgt2zGV/V7Gwga5Gkym0M3UjEYmz9ATMr49S6EeWG5/7Fpraxo6sWXK/sDCnU6vyHZxTMhQwAKzpG8wBjTj8b+ThIAu2PpliJSdi89HKD0ag0hvgYkJoZ81j6mGnNOROA6yU5r2hJXbp3BvqR5PJbXmBkP37ZHS9nYwPuRrNbB7+RKQ3Wqt1KvLCpRysu8IOyRgADtR8YNYlRhzg/cIYR0WwqGW82bbfX3MQ1EpyogyO30iZmIo7dF4Lnl46zwHQYK3rjizagjOScm3BbzswRPzeqoITJ5CBC0CMEW6/WtIc6M15R/9gkHt7Gfk9UZQBmOW+nqnDlBpaIqEZMKWUDl9jdRNTCEEq3o8wOP6CLdSBRHg7EdbEztjMOl8kEry7xxNu0o5jNpX8q9JgL82j/7pgMP5shqPcjxLFe4PwzgDdtYA83vu4GVYeukOrN/nYeMGBSMpEYzrNIz6MFtO+A2sQPBkGWd6w8REIGRbCJGcoxZw=="
+  cambid: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILA2lXJkQkxsGaX/AebbFcV0jy8iS3cYc50VRd1ihxqY"
 
 # ssh users, this might be overridden in host/group vars
 ssh_users:
   - datacop
+  - cambid
 
 # remote shared user account
 username: debian
