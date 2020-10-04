@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# ANSIBLE MANAGED FILE
+
 # set link resolution
 for VAR in "$(xrandr | egrep "^HDMI.* connected" | awk '{print $1}')"; do
 	echo "setting output $VAR"

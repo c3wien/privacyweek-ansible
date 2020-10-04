@@ -12,3 +12,20 @@
     dest: "/etc/pulse/daemon.conf"
     regexp: "^default-sample-channels"
     line: "default-sample-channels = {{ pulseaudio_defaultsamplechannels }}"
+
+- name: add ~/pulseaudio-settings.sh script
+  template:
+    src: files/pulseaudio-settings.sh
+    dest: "/home/{{ desktop_username }}/pulseaudio-settings.sh"
+    owner: "{{ desktop_username }}"
+    group: "{{ desktop_username }}"
+    mode: u=rwx,g=r,o=r
+    backup: no
+  notify: restart display
+
+- name: add pulseaudio-settings.sh to autostart
+  lineinfile:
+    dest: "/home/{{ desktop_username }}/.config/lxsession/LXDE/autostart"
+    regexp: "^@\/home\/{{ desktop_username }}\/pulseaudio-settings.sh"
+    line: "@/home/{{ desktop_username }}/pulseaudio-settings.sh"
+  notify: restart display
