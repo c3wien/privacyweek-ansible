@@ -1,0 +1,55 @@
+---
+- name: install vnc packages
+  apt:
+    state: present
+    name: [ tigervnc-scraping-server, novnc, websockify ]
+
+- name: create symlink for noVNC index.html
+  file:
+    src: "/usr/share/novnc/vnc.html"
+    dest: "/usr/share/novnc/index.html"
+    state: link
+
+- name: create .vnc directory
+  file:
+    path: /home/{{ desktop_username }}/.vnc
+    state: directory
+    owner: "{{ desktop_username }}"
+    group: "{{ desktop_username }}"
+    mode: 0755
+
+- name: set VNC password
+  shell: echo {{ desktop_vnc_password }} | vncpasswd -f > /home/{{ desktop_username }}/.vnc/passwd
+
+- name: set correct permissions for VNC passwd file
+  file:
+    path: /home/{{ desktop_username }}/.vnc/passwd
+    owner: "{{ desktop_username }}"
+    group: "{{ desktop_username }}"
+    mode: 0600
+
+- name: add ~/run-tigervnc.sh script
+  template:
+    src: files/run-tigervnc.sh
+    dest: "/home/{{ desktop_username }}/run-tigervnc.sh"
+    owner: "{{ desktop_username }}"
+    group: "{{ desktop_username }}"
+    mode: u=rwx,g=r,o=r
+    backup: no
+  notify: restart display
+
+- name: add run-tigervnc.sh to autostart
+  lineinfile:
+    dest: "/home/{{ desktop_username }}/.config/lxsession/LXDE/autostart"
+    regexp: "^@\/home\/{{ desktop_username }}\/run-tigervnc.sh"
+    line: "@/home/{{ desktop_username }}/run-tigervnc.sh"
+  notify: restart display
+
+- name: open noVNC ports
+  ufw:
+    rule: allow
+    port: '{{ item }}'
+    proto: tcp
+  with_items:
+  - '{{ desktop_novnc_port }}'
+

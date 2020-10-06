@@ -15,3 +15,5 @@ pulseaudio_sink_volume: '0.5'
 desktop_color: '#954b97' # pw20 violet
 desktop_background_image: "files/misc/PW20_Key_Visual_QF_Karabiner_RGB_oB_oT.jpg"
 
+desktop_vnc_password: ''
+desktop_novnc_port: 5800

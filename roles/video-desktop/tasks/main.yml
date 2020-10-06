@@ -31,3 +31,7 @@
 
 - name: set up pulseaudio
   include_tasks: pulseaudio.yml
+
+- name: set up vnc (set desktop_vnc_password to enable)
+  include_tasks: vnc.yml
+  when: (desktop_vnc_password is defined) and (desktop_vnc_password|length > 0)
