@@ -10,7 +10,7 @@
 - name: Install desktop packages
   apt:
     state: present
-    name: [ task-lxde-desktop, pulseaudio, pavucontrol, unclutter, chromium, chromium-driver ]
+    name: [ task-lxde-desktop, pulseaudio, pavucontrol, unclutter, chromium, chromium-driver, molly-guard ]
 
 - name: enable lightdm autologon
   blockinfile:

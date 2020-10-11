@@ -1,0 +1,7 @@
+---
+
+- name: Install dependencies
+  apt:
+    state: present
+    name: [ virtualenv, chromium, chromium-driver ]
+

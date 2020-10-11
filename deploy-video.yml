@@ -1,10 +1,19 @@
 ---
-- name: setting up videosources
+- name: setting up videosources desktop/graphics
   hosts: videosources
   become: true
   serial: 1
   roles:
-    - role: video-desktop
+  - role: video-desktop
   tags:
   - never
-  - videosources
+  - install
+
+- name: setting up jitsi-drones
+  hosts: jitsi_drones
+  become: true
+  serial: 1
+  roles:
+  - role: install-remotestudio
+  - role: video-jitsi-client
+
