@@ -1,0 +1,16 @@
+---
+
+- name: set alsa defaults.ctl.card
+  lineinfile:
+    dest: /usr/share/alsa/alsa.conf
+    state: present
+    regexp: '^defaults\.ctl\.card'
+    line: 'defaults.ctl.card {{ alsa_defaults_ctl_card }}'
+
+- name: set alsa defaults.ctl.card
+  lineinfile:
+    dest: /usr/share/alsa/alsa.conf
+    state: present
+    regexp: '^defaults\.pcm\.card'
+    line: 'defaults.pcm.card {{ alsa_defaults_pcm_card }}'
+

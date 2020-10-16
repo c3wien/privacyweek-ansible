@@ -1,0 +1,9 @@
+---
+
+- name: Install mpd package
+  apt:
+    state: present
+    name: [ mpd, mpc ]
+
+- name: set mpd crossfade
+  shell: mpc crossfade 10

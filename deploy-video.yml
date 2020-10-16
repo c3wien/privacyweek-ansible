@@ -17,3 +17,21 @@
   - role: install-remotestudio
   - role: video-jitsi-client
 
+- name: setting up pi_audio settings
+  hosts: pi_audio
+  become: true
+  roles:
+  - role: pi-usb-audio
+  tags:
+  - never
+  - install
+
+- name: setting up mpd pausenmusik
+  hosts: music
+  become: true
+  roles:
+  - role: mpd-music
+  tags:
+  - never
+  - install
+

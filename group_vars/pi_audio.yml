@@ -1,0 +1,7 @@
+
+# USB Audio card
+alsa_defaults_ctl_card: 2
+alsa_defaults_pcm_card: 2
+
+# remote shared user account
+username: pi
