@@ -1,0 +1,22 @@
+- hosts: jitsi_servers
+  roles:
+     - video/jitsi-server/systemli.jitsi_meet
+  vars:
+    jitsi_meet_server_name: "localhost"
+  post_tasks:
+  - name: UFW ports
+    ufw:
+      rule: allow
+      port: '{{ item }}'
+      proto: tcp
+    with_items:
+      - '80'
+      - '443'
+      - '4443'
+  - name: UFW ports udp
+    ufw:
+      rule: allow
+      port: '{{ item }}'
+      proto: udp
+    with_items:
+      - '10000'
