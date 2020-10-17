@@ -5,10 +5,10 @@
     name: prosody
     state: restarted
 
-- name: restart nginx
+- name: reload nginx
   service:
     name: nginx
-    state: restarted
+    state: reloaded
 
 - name: restart jitsi-videobridge2
   service:
@@ -19,3 +19,6 @@
   service:
     name: jicofo
     state: restarted
+
+- name: update ca-certificates
+  command: update-ca-certificates -f

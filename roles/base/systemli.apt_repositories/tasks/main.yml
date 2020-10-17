@@ -1,0 +1,30 @@
+---
+
+- name: Remove old repositories
+  file:
+    path: "/etc/apt/sources.list.d/{{ item }}"
+    state: absent
+  with_items: "{{ apt_repositories_absent }}"
+
+- name: Update cache
+  apt:
+    update_cache: true
+  changed_when: false
+
+- name: Install dependecies
+  apt:
+    pkg: "{{ apt_repositories_dependencies }}"
+
+- name: Ensure we can transport via https
+  apt:
+    pkg: apt-transport-https
+  when: ((ansible_distribution == 'Debian' and ansible_distribution_major_version|int < 10) or
+        (ansible_distribution == 'Ubuntu' and ansible_distribution_major_version|int < 18))
+
+- include_tasks: repo.yml
+  loop: "{{ apt_repositories }}"
+
+- name: Update cache
+  apt:
+    update_cache: true
+  changed_when: false

@@ -4,54 +4,23 @@
 
 This role installs and configure [Jitsi Meet](https://jitsi.org/jitsi-meet/) with nginx Webserver and prosody as XMPP Server.
 
+It is maintained with Debian Buster in mind, but should also work with its
+derivatives like Ubuntu 20.04.
+
+
 Role Variables
 --------------
 
-```
----
-jitsi_meet_server_name: "meet.example.com"
-jitsi_meet_videobridge_loglevel: "ERROR"
-jitsi_meet_videobridge_secret: "CHANGEME"
-jitsi_meet_videobridge_port: 5347
-jitsi_meet_jicofo_loglevel: "ERROR"
-jitsi_meet_jicofo_user: focus
-jitsi_meet_jicofo_secret: "CHANGEME2"
-jitsi_meet_jicofo_port: 5347
-jitsi_meet_jicofo_password: "CHANGEME3"
+You need to set the `jitsi_meet_base_secret` variable from which passwords for
+the various internally used accounts are created.
 
-jitsi_meet_cert_choice: "Generate a new self-signed certificate (You will later get a chance to obtain a Let's encrypt certificate)"
-jitsi_meet_ssl_cert_path: "/etc/ssl/certs/ssl-cert-snakeoil.pem"
-jitsi_meet_ssl_key_path: "/etc/ssl/private/ssl-cert-snakeoil.key"
+See [`defaults/main.yml`](defaults/main.yml) for further available variables.
 
-jitsi_meet_debconf_settings:
-  - name: jitsi-meet
-    question: jitsi-meet/cert-choice
-    value: "{{ jitsi_meet_cert_choice }}"
-    vtype: string
-  - name: jitsi-meet
-    question: jitsi-meet/jvb-serve
-    value: "true"
-    vtype: boolean
-  - name: jitsi-meet-prosody
-    question: jitsi-meet-prosody/jvb-hostname
-    value: "{{ jitsi_meet_server_name }}"
-    vtype: string
-  - name: jitsi-videobridge
-    question: jitsi-videobridge/jvb-hostname
-    value: "{{ jitsi_meet_server_name }}"
-    vtype: string
-jitsi_meet_config_resolution: 720
-jitsi_meet_config_disable_third_party_requests: "true"
-jitsi_meet_config_p2p_enabled: "true"
-# For privacy reasons we recommend to use your own STUN servers 
-jitsi_meet_config_stun_servers:
-  - stun.l.google.com:19302
-  - stun1.l.google.com:19302
-  - stun2.l.google.com:19302
-jitsi_meet_config_default_language: en
-jitsi_meet_config_last_n: "-1"
+Dependencies
+------------
 
-```
+ - [systemli.apt_repositories](https://galaxy.ansible.com/systemli/apt_repositories)
+
 
 Download
 --------
@@ -76,6 +45,12 @@ Example Playbook
         - "{{ jitsi_meet_server_name }}"
       challenge: dns
 ```
+
+Caveats
+-------
+
+A change of the `jitsi_meet_server_name` variable applied on an already
+deployed instance is going to break the configuration.
 
 Tests
 -----
