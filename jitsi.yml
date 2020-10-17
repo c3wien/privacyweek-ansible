@@ -1,8 +1,8 @@
 - hosts: jitsi_servers
+  become: true
   roles:
+     - base/systemli.letsencrypt
      - video/jitsi-server/systemli.jitsi_meet
-  vars:
-    jitsi_meet_server_name: "localhost"
   post_tasks:
   - name: UFW ports
     ufw:
@@ -20,3 +20,7 @@
       proto: udp
     with_items:
       - '10000'
+  - name: start nginx
+    service:
+      name: nginx
+      state: started
