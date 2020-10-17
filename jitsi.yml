@@ -1,8 +1,6 @@
 - hosts: jitsi_servers
   roles:
      - video/jitsi-server/systemli.jitsi_meet
-  vars:
-    jitsi_meet_server_name: "localhost"
   post_tasks:
   - name: UFW ports
     ufw:
