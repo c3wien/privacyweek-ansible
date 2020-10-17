@@ -4,7 +4,7 @@
   become: true
   serial: 1
   roles:
-  - role: video-desktop
+  - role: video/hdmi-desktop
   tags:
   - never
   - install
@@ -15,13 +15,13 @@
   serial: 1
   roles:
   - role: install-remotestudio
-  - role: video-jitsi-client
+  - role: video/jitsi-client
 
 - name: setting up pi_audio settings
   hosts: pi_audio
   become: true
   roles:
-  - role: pi-usb-audio
+  - role: audio/pi-usb-audio
   tags:
   - never
   - install
@@ -30,7 +30,7 @@
   hosts: music
   become: true
   roles:
-  - role: mpd-music
+  - role: audio/mpd-music
   tags:
   - never
   - install

@@ -45,7 +45,7 @@
 
 - name: updating authorized_keys
   import_role:
-    name: authorized_keys
+    name: base/authorized_keys
 
 - name: SSH port {{ ssh_port }}
   lineinfile:
