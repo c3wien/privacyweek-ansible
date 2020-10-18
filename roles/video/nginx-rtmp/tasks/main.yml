@@ -1,0 +1,50 @@
+---
+- name: install nginx, libnginx-mod-rtmp, ffmpeg
+  apt:
+    name:
+    - nginx
+    - libnginx-mod-rtmp
+    - ffmpeg
+    state: present
+
+- name: remove nginx default config
+  file:
+    name: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: reload nginx
+
+- name: remove nginx default site
+  file:
+    name: /var/www/html/index.nginx-debian.html
+    state: absent
+
+- name: create directories for rtmp config files
+  loop:
+    - available
+    - enabled
+  file:
+    path: "/etc/nginx/rtmp-{{ item }}"
+    state: directory
+
+- name: add rtmp config section
+  blockinfile:
+    path: /etc/nginx/nginx.conf
+    block: |
+      rtmp {
+      	include /etc/nginx/rtmp-enabled/*;
+      }
+    marker: "# rtmp: {mark} ansible managed block"
+  notify: reload nginx
+
+- name: allow rtmp port
+  ufw:
+    rule: allow
+    port: '{{ nginx_rtmp_port }}'
+    proto: tcp
+
+- name: write docker-compose.yml
+  template:
+    src: files/rtmp.conf.j2
+    dest: "/etc/nginx/rtmp-enabled/rtmp.conf"
+  notify: reload nginx
+

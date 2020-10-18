@@ -1,0 +1,69 @@
+---
+
+decklink_encoder_input_ac: 8 # [2,8,16]
+decklink_encoder_output_ac: 5
+decklink_encoder_channelmap: "pan=5.0|c0=c0|c1=c1|c3=c2|c4=c3"
+
+decklink_encoder_targets:
+  - hd-output:
+    target: "rtmp://127.0.0.1/hd-native/main"
+#    rate_options: '-r:v:0 25 -g:v:0 75 -crf:v:0 23 -maxrate:v:0 2.5M -bufsize:v:0 18M'
+    rate_options: '-r:v:0 25 -maxrate:v:0 2500k -crf:0 21 -bufsize:v:0 12M'
+    aac_bw: '384k'
+  - sd-output:
+    target: "rtmp://127.0.0.1/sd-native/main"
+    filter: "-filter:v scale=1024:576" #scale to 576p25
+    aac_bw: '192k'
+    rate_options: '-r:v:0 25 -maxrate:v:0 800k  -crf:0 18 -bufsize:v:0 6M'
+
+
+nginx_rtmp_applications:
+  hd-native:
+    options:
+      meta: 'copy'
+      live: 'on'
+    exec_push:
+    - "ffmpeg -re -nostdin -i rtmp://127.0.0.1/hd-native/$name -c:v copy -copyts -start_at_zero -af 'pan=stereo|c0=c0|c1=c1,aresample=async=1000' -c:a aac -b:a 128k -ar 48k -ac 2 -y -f flv rtmp://127.0.0.1/orig/$name_hd"
+    - "ffmpeg -re -nostdin -i rtmp://127.0.0.1/hd-native/$name -c:v copy -copyts -start_at_zero -af 'pan=stereo|c0=c3|c1=c4,aresample=async=1000' -c:a aac -b:a 128k -ar 48k -ac 2 -y -f flv rtmp://127.0.0.1/trans/$name_hd"
+    allow_publish:
+    - "127.0.0.1"
+    deny_publish:
+    - "all"
+  sd-native:
+    options:
+      meta: 'copy'
+      live: 'on'
+    exec_push:
+    - "ffmpeg -re -nostdin -i rtmp://127.0.0.1/sd-native/$name -c:v copy -copyts -start_at_zero -af 'pan=stereo|c0=c0|c1=c1,aresample=async=1000' -c:a aac -b:a 96k -ar 48k -ac 2 -y -f flv rtmp://127.0.0.1/orig/$name_sd"
+    - "ffmpeg -re -nostdin -i rtmp://127.0.0.1/sd-native/$name -c:v copy -copyts -start_at_zero -af 'pan=stereo|c0=c3|c1=c4,aresample=async=1000' -c:a aac -b:a 96k -ar 48k -ac 2 -y -f flv rtmp://127.0.0.1/trans/$name_sd"
+    allow_publish:
+    - "127.0.0.1"
+    deny_publish:
+    - "all"
+  orig:
+    options:
+      meta: 'copy'
+      live: 'on'
+    allow_publish:
+    - "127.0.0.1"
+    deny_publish:
+    - "all"
+    hls:
+      path: "/srv/hls/orig/"
+      variants:
+      - '_sd BANDWIDTH=819200'
+      - '_hd BANDWIDTH=2560000'
+  trans:
+    options:
+      meta: 'copy'
+      live: 'on'
+    allow_publish:
+    - "127.0.0.1"
+    deny_publish:
+    - "all"
+    hls:
+      path: "/srv/hls/trans/"
+      variants:
+      - '_sd BANDWIDTH=819200'
+      - '_hd BANDWIDTH=2560000'
+

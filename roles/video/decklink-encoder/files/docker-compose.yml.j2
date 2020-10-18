@@ -1,0 +1,13 @@
+version: '3'
+services:
+  ffmpeg:
+    image: {{ ffmpeg_docker_image }}
+    privileged: true
+    network_mode: "host"
+    command: "/decklink2rtmp.sh"
+    volumes:
+      - "./decklink2rtmp.sh:/decklink2rtmp.sh:ro"
+      - "/dev/blackmagic:/dev/blackmagic"
+      - "/usr/lib/libDeckLinkAPI.so:/usr/lib/libDeckLinkAPI.so:ro"
+      - "/usr/lib/libDeckLinkPreviewAPI.so:/usr/lib/libDeckLinkPreviewAPI.so:ro"
+      - "/usr/lib/blackmagic:/usr/lib/blackmagic:ro"

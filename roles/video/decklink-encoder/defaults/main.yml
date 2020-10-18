@@ -1,0 +1,17 @@
+---
+docker_compose_project_dir: '/etc/docker-compose/'
+decklink_encoder_project_dir: '{{ docker_compose_project_dir }}/decklink-encoder'
+
+ffmpeg_docker_image: 'registry.gitlab.com/spreadspace/docker/nginx:2020-04-29.7'
+
+decklink_encoder_targets:
+  - demo:
+    target: "rtmp://127.0.0.1/stream/push"
+    rate_options: '-maxrate:v:0 3000k -crf:0 21'
+
+# decklink_encoder_device
+# decklink_encoder_device_input: sdi
+# decklink_encoder_format_code
+decklink_encoder_input_ac: 2 # [2,8,16] for decklink
+decklink_encoder_output_ac: 2
+decklink_encoder_channelmap: no

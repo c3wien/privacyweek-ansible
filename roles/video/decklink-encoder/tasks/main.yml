@@ -1,0 +1,22 @@
+---
+
+- name: make sure docker-compose is set up
+  import_role:
+    name: contrib/docker-compose
+
+
+- name: docker-compose config directory
+  file:
+    path: "{{ decklink_encoder_project_dir }}"
+    state: directory
+
+- name: write docker-compose.yml
+  template:
+    src: files/docker-compose.yml.j2
+    dest: "{{ decklink_encoder_project_dir }}/docker-compose.yml"
+
+- name: write run-decklink2rtmp.sh
+  template:
+    src: files/decklink2rtmp.sh.j2
+    dest: "{{ decklink_encoder_project_dir }}/decklink2rtmp.sh"
+    mode: u=rwx,g=rx,o=rx

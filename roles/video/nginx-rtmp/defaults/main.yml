@@ -1,0 +1,16 @@
+---
+nginx_rtmp_port: 1935
+
+nginx_rtmp_applications:
+  stream:
+    options:
+      meta: 'copy'
+      live: 'on'
+    allow_publish:
+    - "127.0.0.1"
+    deny_publish:
+    - "all"
+#   hls:
+#      path: "/srv/hls/"
+#      variants:
+#      - '_low BANDWIDTH=288000'

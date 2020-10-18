@@ -14,7 +14,7 @@
   become: true
   serial: 1
   roles:
-  - role: install-remotestudio
+  - role: remotestudio/install
   - role: video/jitsi-client
 
 - name: setting up pi_audio settings
@@ -34,4 +34,29 @@
   tags:
   - never
   - install
+
+- name: setting up nginx rtmp servers
+  hosts: rtmp
+  become: true
+  roles:
+  - role: video/nginx-rtmp
+  tags:
+  - never
+  - install
+  - rtmp
+  - stream
+
+- name: setting up decklink video encoders
+  hosts: decklink_encoders
+  become: true
+  roles:
+  - role: video/decklink-encoder
+  vars:
+    decklink_encoder_device: "{{ decklink_device }}"
+    decklink_encoder_format_code: "{{ decklink_format_code }}"
+  tags:
+  - never
+  - install
+  - decklink
+  - stream
 

@@ -1,0 +1,44 @@
+
+server {
+    listen [::]:{{nginx_rtmp_port}} ipv6only=off;
+
+    ping 10s;
+    ping_timeout 3s;
+    drop_idle_publisher 10s;
+    wait_video on;
+    publish_notify on;
+    idle_streams off;
+
+    # Synchronize audio and video streams. Default is 300ms.
+    sync 150ms;
+
+{% for appname, app in nginx_rtmp_applications.items() %}
+    application {{ appname }} {
+{% for key, value in app.options.items() %}
+        {{ key }} {{ value }};
+{% endfor %}
+{% if app.exec_push is defined %}
+{% for exec_push in app.exec_push %}
+        exec_push {{ exec_push }};
+{% endfor %}
+{% endif %}
+{% if app.hls is defined %}
+        hls on;
+        hls_path {{ app.hls.path }};
+{% for hls_variant in app.hls.variants %}
+        hls_variant {{ hls_variant }};
+{% endfor %}
+{% endif %}
+{% if app.allow_publish is defined %}
+{% for allow in app.allow_publish %}
+        allow publish {{ allow }};
+{% endfor %}
+{% endif %}
+{% if app.deny_publish is defined %}
+{% for allow in app.deny_publish %}
+        deny publish {{ allow }};
+{% endfor %}
+{% endif %}
+    }
+{% endfor %}
+}
