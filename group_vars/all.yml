@@ -15,6 +15,9 @@ ssh_users:
   - cambid
   - albert
   - nan0
+  - nan0m
+  - nan0d
+  - nan0t
 
 # remote shared user account
 username: debian
