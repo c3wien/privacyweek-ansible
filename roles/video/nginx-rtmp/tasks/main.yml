@@ -42,9 +42,16 @@
     port: '{{ nginx_rtmp_port }}'
     proto: tcp
 
-- name: write docker-compose.yml
+- name: write /etc/nginx/rtmp-enabled/rtmp.conf
   template:
     src: files/rtmp.conf.j2
     dest: "/etc/nginx/rtmp-enabled/rtmp.conf"
   notify: reload nginx
 
+- name: create directory nginx_rtmp_hls_dir
+  file:
+    dest: "{{ nginx_rtmp_hls_dir }}"
+    state: directory
+    owner: "{{ nginx_rtmp_hls_user }}"
+    group: "{{ nginx_rtmp_hls_group }}"
+  when: nginx_rtmp_hls_dir is defined

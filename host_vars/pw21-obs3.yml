@@ -1,0 +1,8 @@
+---
+# HP ProDesk G2 DM SFF
+
+desktop_extend_virtual: true
+
+pulseaudio_card: 'alsa_card.pci-0000_00_1f.3'
+pulseaudio_card_profile: 'output:hdmi-stereo-extra2+input:analog-stereo'
+pulseaudio_sink: 'alsa_output.pci-0000_00_1f.3.hdmi-stereo-extra2'

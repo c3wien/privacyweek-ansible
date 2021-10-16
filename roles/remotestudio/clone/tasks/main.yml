@@ -1,0 +1,17 @@
+---
+- name: Install python3 dependencies
+  apt:
+    state: present
+    name: git
+
+- name: create remotestudio root dir
+  file:
+    dest: "{{ remotestudio_rootdir }}"
+    state: directory
+
+- name: clone remotestudio
+  git:
+    repo: https://github.com/oe1rfc/remotestudio.git
+    dest: "{{ remotestudio_rootdir }}/src"
+    version: main
+    update: yes

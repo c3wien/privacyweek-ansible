@@ -1,0 +1,69 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+{{ ansible_managed | comment }}
+# licensed under MIT License https://github.com/cloudalchemy/ansible-prometheus
+# http://prometheus.io/docs/operating/configuration/
+
+global:
+  {{ prometheus_global | to_nice_yaml(indent=2) | indent(2, False) }}
+  external_labels:
+    {{ prometheus_external_labels | to_nice_yaml(indent=2) | indent(4, False) }}
+
+{% if prometheus_remote_write != [] %}
+remote_write:
+  {{ prometheus_remote_write | to_nice_yaml(indent=2) | indent(2, False) }}
+{% endif %}
+
+{% if prometheus_remote_read != [] %}
+remote_read:
+  {{ prometheus_remote_read | to_nice_yaml(indent=2) | indent(2, False) }}
+{% endif %}
+
+rule_files:
+  - {{ prometheus_config_dir }}/*.rules
+
+{% if prometheus_alertmanager_config | length > 0 %}
+alerting:
+  alertmanagers:
+  {{ prometheus_alertmanager_config | to_nice_yaml(indent=2) | indent(2,False) }}
+  {% if prometheus_alert_relabel_configs | length > 0 %}
+  alert_relabel_configs:
+  {{ prometheus_alert_relabel_configs | to_nice_yaml(indent=2) | indent(2,False) }}
+  {% endif %}
+{% endif %}
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: [ "localhost:9090" ]  # self-scrape
+        labels:
+          source: node-exporter
+          hostname: "{{ ansible_fqdn | default(ansible_host) | default(inventory_hostname) }}"
+  {{ prometheus_scrape_configs | to_nice_yaml(indent=2) | indent(2,False) }}
+{% if prometheus_docker_sd_enabled %}
+  - job_name: "docker-sd"
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+    relabel_configs:
+      # Only keep containers that have a `prometheus-job` label.
+      - source_labels: [__meta_docker_container_label_prometheus_job]
+        regex: .+
+        action: keep
+      # Use the task labels that are prefixed by `prometheus-`.
+      - regex: __meta_docker_container_label_prometheus_(.+)
+        action: labelmap
+        replacement: $1
+      # set metric path via prometheus-path label
+      - action: replace
+        regex: (.+)
+        source_labels:
+        - __meta_docker_container_label_prometheus_path
+        target_label: __metrics_path__
+      # set port via prometheus-port label and docker IP
+      - action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        source_labels:
+        - __address__
+        - __meta_docker_container_label_prometheus_port
+        target_label: __address__
+{% endif %}

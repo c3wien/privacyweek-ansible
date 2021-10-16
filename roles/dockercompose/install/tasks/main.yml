@@ -1,0 +1,44 @@
+---
+- name: Install dependent packages
+  ansible.builtin.apt:
+    state: present
+    name: [ apt-transport-https, ca-certificates, curl, gnupg2, software-properties-common ]
+
+- name: Add docker apt key
+  ansible.builtin.apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: 8D81803C0EBFCD88
+    state: present 
+
+- name: Add docker repo
+  ansible.builtin.apt_repository:
+    repo: 'deb https://download.docker.com/linux/debian {{ ansible_lsb.codename|lower }} stable'
+    state: present
+    filename: 'docker'
+    update_cache: yes
+
+- name: Install docker-compose
+  ansible.builtin.apt:
+    name: [ docker-ce, docker-compose ]
+    state: present
+
+- name: docker-compose config directory
+  ansible.builtin.file: path=/etc/docker-compose/ state=directory
+
+- name: docker-compose service unit
+  ansible.builtin.template:
+    src: files/docker-compose-service-unit
+    dest: '/etc/systemd/system/docker-compose@.service'
+  notify: systemd daemon-reload
+
+- meta: flush_handlers
+
+- name: Logging into docker_registries
+  community.docker.docker_login:
+    registry_url: '{{ item.registry_url | default("https://index.docker.io/v1/") }}'
+    username: '{{ item.username }}'
+    password: '{{ item.password }}'
+  loop_control:
+    label: "{{ item.name }}"
+  loop: '{{ docker_registries }}'
+

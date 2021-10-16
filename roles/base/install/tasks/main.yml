@@ -1,6 +1,6 @@
 ---
 - name: install python
-  raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+  raw: test -e /usr/bin/python3 || (apt -y update && apt install -y python3-minimal)
 - name: 'install aptitude'
   raw: apt-get -y install aptitude
 
@@ -65,6 +65,22 @@
   user:
     name: root
     password: ''
+
+- name: Install prometheus-node-exporter
+  apt:
+    state: present
+    name: [ prometheus-node-exporter ]
+  when: prometheus_node_exporter == true
+
+- name: set firewall rules for prometheus-node-exporter
+  ufw:
+    rule: allow
+    port: 9100
+    proto: tcp
+    src: '{{ item }}'
+  with_items: '{{ prometheus_node_exporter_subnets }}'
+  when: prometheus_node_exporter == true
+
 
 - name: UFW logging disable
   ufw:

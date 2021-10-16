@@ -22,3 +22,20 @@ ssh_users:
 # remote shared user account
 username: debian
 
+voc_event_acronym: 'pw21'
+room_fahrplan_name: 'Stream'
+
+letsencrypt_email: 'office@privacyweek.at'
+
+event_name: "PrivacyWeek"
+event_domains:
+  base: "privacyweek.at"
+  bbb: "workshops.privacyweek.at"
+  jitsi: "talks.privacyweek.at"
+  ops: "ops.privacyweek.wien"
+
+
+prometheus_node_exporter: true
+prometheus_node_exporter_subnets:
+  - '192.168.0.0/16'
+  - '77.237.51.96/28'

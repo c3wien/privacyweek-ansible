@@ -1,0 +1,4 @@
+install_traefik: True
+install_gitlab: True
+install_prometheus: True
+install_bbb_exporter: True

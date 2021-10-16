@@ -1,0 +1,86 @@
+---
+
+- name: create docker-compose project dir
+  ansible.builtin.include_role:
+    name: dockercompose/create_project
+  vars:
+    project: "{{ prometheus_docker_project }}"
+
+- name: set data dir permissions {{ prometheus_data_dir }}
+  ansible.builtin.file:
+    path: "{{ prometheus_data_dir }}"
+    mode: "u=rwx,g=rx"
+    owner: "{{ prometheus_user }}"
+    state: directory
+
+- name: create config dir {{ prometheus_conf_dir }}
+  ansible.builtin.file:
+    path: "{{ prometheus_conf_dir }}"
+    mode: "u=rwx,g=rx"
+    state: directory
+
+# prometheus docker network
+- name: add prometheus docker network
+  ansible.builtin.template:
+    src: files/docker-network.service.j2
+    dest: '/etc/systemd/system/docker-{{ prometheus_docker_sd_network }}-network.service'
+  when: prometheus_docker_sd_enabled
+- name: enable prometheus docker network
+  ansible.builtin.systemd:
+    name: "docker-{{ prometheus_docker_sd_network }}-network.service"
+    state: started
+    enabled: true
+  when: prometheus_docker_sd_enabled
+
+- name: get docker group for docker_sd
+  getent:
+    database: group
+    key: docker
+  when: prometheus_docker_sd_enabled
+
+# write configs
+- name: write docker-compose.yml
+  ansible.builtin.template:
+    src: files/docker-compose.yml.j2
+    dest: "{{ prometheus_docker_dir }}/docker-compose.yml"
+  notify: restart prometheus
+
+- name: write prometheus.yml
+  ansible.builtin.template:
+    src: files/prometheus.yml.j2
+    dest: "{{ prometheus_conf_dir }}/prometheus.yml"
+  notify: reload prometheus
+
+- name: write alert.rules
+  ansible.builtin.template:
+    src: files/alert.rules.j2
+    dest: "{{ prometheus_conf_dir }}/alert.rules"
+  notify: reload prometheus
+
+- name: generate grafana admin user password
+  ansible.builtin.shell: |
+    cat <<EOF > grafana.env
+    # INFO: these values are only generated once, not updated via ansible
+    GF_SECURITY_ADMIN_PASSWORD=$(openssl rand -base64 32)
+    GF_SECURITY_SECRET_KEY=$(openssl rand -base64 32)
+    EOF
+    chmod 600 grafana.env
+  become: true
+  args:
+    chdir: "{{ prometheus_docker_dir }}"
+    creates: "grafana.env"
+  when: prometheus_grafana_enabled
+  notify:
+  - fix grafana permissions
+  - restart prometheus
+
+- name: write grafana_datasource.yml
+  ansible.builtin.template:
+    src: files/grafana_datasource.yml.j2
+    dest: "{{ prometheus_docker_dir }}/grafana_datasource.yml"
+  when: prometheus_grafana_enabled
+  notify:
+  - fix grafana permissions
+  - restart prometheus
+
+- meta: flush_handlers

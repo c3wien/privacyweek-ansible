@@ -1,0 +1,32 @@
+---
+
+# jitsi_meet_server_name: ""
+
+jitsi_meet_cert_choice: "Generate a new self-signed certificate (You will later get a chance to obtain a Let's encrypt certificate)"
+
+jitsi_generate_letsencrypt: false
+
+jitsi_meet_packages:
+  - jitsi-meet
+  - jitsi-meet-web-config
+  - jibri
+
+jitsi_meet_config: {}
+
+jitsi_interface_config: {}
+
+jitsi_meet_config_defaults:
+  maxFullResolutionParticipants: 2
+  liveStreamingEnabled: "false"
+  requireDisplayName: "true"
+  enableWelcomePage: "true"
+  noticeMessage: ""
+  prejoinPageEnabled: "true"
+  disableThirdPartyRequests: "true"
+  p2p_enabled: "false"
+  deploymentInfo_region: "europe"
+  localrecording: "true"
+  localrecording_format: "flac"
+  userDocumentationURL: "https://example.com/"
+  backgroundAlpha: 1
+  hiddenDomain: false

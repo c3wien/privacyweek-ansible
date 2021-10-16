@@ -4,6 +4,8 @@ decklink_encoder_input_ac: 8 # [2,8,16]
 decklink_encoder_output_ac: 5
 decklink_encoder_channelmap: "pan=5.0|c0=c0|c1=c1|c3=c2|c4=c3"
 
+rtmp_cdn_target: '192.168.42.99' # pw20-streamproxy
+
 decklink_encoder_targets:
   - hd-output:
     target: "rtmp://127.0.0.1/hd-native/main"
@@ -23,8 +25,8 @@ nginx_rtmp_applications:
       meta: 'copy'
       live: 'on'
     exec_push:
-    - "ffmpeg -re -nostdin -i rtmp://127.0.0.1/hd-native/$name -c:v copy -copyts -start_at_zero -af 'pan=stereo|c0=c0|c1=c1,aresample=async=1000' -c:a aac -b:a 128k -ar 48k -ac 2 -y -f flv rtmp://127.0.0.1/orig/$name_hd"
-    - "ffmpeg -re -nostdin -i rtmp://127.0.0.1/hd-native/$name -c:v copy -copyts -start_at_zero -af 'pan=stereo|c0=c3|c1=c4,aresample=async=1000' -c:a aac -b:a 128k -ar 48k -ac 2 -y -f flv rtmp://127.0.0.1/trans/$name_hd"
+    - "ffmpeg -re -nostdin -i rtmp://127.0.0.1/hd-native/$name -c:v copy -copyts -start_at_zero -af 'pan=stereo|c0=c0|c1=c1,aresample=async=1000' -c:a aac -b:a 128k -ar 48k -ac 2 -y -f flv rtmp://{{ rtmp_cdn_target }}/orig/$name_hd"
+    - "ffmpeg -re -nostdin -i rtmp://127.0.0.1/hd-native/$name -c:v copy -copyts -start_at_zero -af 'pan=stereo|c0=c3|c1=c4,aresample=async=1000' -c:a aac -b:a 128k -ar 48k -ac 2 -y -f flv rtmp://{{ rtmp_cdn_target }}/trans/$name_hd"
     allow_publish:
     - "127.0.0.1"
     deny_publish:
@@ -34,36 +36,9 @@ nginx_rtmp_applications:
       meta: 'copy'
       live: 'on'
     exec_push:
-    - "ffmpeg -re -nostdin -i rtmp://127.0.0.1/sd-native/$name -c:v copy -copyts -start_at_zero -af 'pan=stereo|c0=c0|c1=c1,aresample=async=1000' -c:a aac -b:a 96k -ar 48k -ac 2 -y -f flv rtmp://127.0.0.1/orig/$name_sd"
-    - "ffmpeg -re -nostdin -i rtmp://127.0.0.1/sd-native/$name -c:v copy -copyts -start_at_zero -af 'pan=stereo|c0=c3|c1=c4,aresample=async=1000' -c:a aac -b:a 96k -ar 48k -ac 2 -y -f flv rtmp://127.0.0.1/trans/$name_sd"
+    - "ffmpeg -re -nostdin -i rtmp://127.0.0.1/sd-native/$name -c:v copy -copyts -start_at_zero -af 'pan=stereo|c0=c0|c1=c1,aresample=async=1000' -c:a aac -b:a 96k -ar 48k -ac 2 -y -f flv rtmp://{{ rtmp_cdn_target }}/orig/$name_sd"
+    - "ffmpeg -re -nostdin -i rtmp://127.0.0.1/sd-native/$name -c:v copy -copyts -start_at_zero -af 'pan=stereo|c0=c3|c1=c4,aresample=async=1000' -c:a aac -b:a 96k -ar 48k -ac 2 -y -f flv rtmp://{{ rtmp_cdn_target }}/trans/$name_sd"
     allow_publish:
     - "127.0.0.1"
     deny_publish:
     - "all"
-  orig:
-    options:
-      meta: 'copy'
-      live: 'on'
-    allow_publish:
-    - "127.0.0.1"
-    deny_publish:
-    - "all"
-    hls:
-      path: "/srv/hls/orig/"
-      variants:
-      - '_sd BANDWIDTH=819200'
-      - '_hd BANDWIDTH=2560000'
-  trans:
-    options:
-      meta: 'copy'
-      live: 'on'
-    allow_publish:
-    - "127.0.0.1"
-    deny_publish:
-    - "all"
-    hls:
-      path: "/srv/hls/trans/"
-      variants:
-      - '_sd BANDWIDTH=819200'
-      - '_hd BANDWIDTH=2560000'
-

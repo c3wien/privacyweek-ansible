@@ -1,0 +1,36 @@
+---
+
+- name: ensure ffmpeg
+  apt:
+    name:
+    - ffmpeg
+    state: present
+
+- name: create /opt/video/
+  file:
+    dest: "/opt/video/"
+    state: directory
+
+- name: create folder in /video/capture/
+  file:
+    dest: "/video/capture/{{ voc_event_acronym }}"
+    state: directory
+
+- name: setting up /opt/video/recording.sh
+  template:
+    src: files/recording.sh.j2
+    dest: "/opt/video/recording.sh"
+    mode: u=rwx,g=rx,o=rx
+
+- name: add service unit video-recording.service
+  template:
+    src: files/recording-systemd-unit.j2
+    dest: /etc/systemd/system/video-recording.service
+
+- name: start and enable video-recording
+  systemd:
+    daemon_reload: yes
+    state: started
+    enabled: true
+    name: video-recording
+

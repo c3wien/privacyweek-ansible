@@ -1,0 +1,13 @@
+[Unit]
+Description=video Recording
+After=network-online.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+StartLimitIntervalSec=0
+ExecStart=/opt/video/recording.sh
+
+[Install]
+WantedBy=multi-user.target

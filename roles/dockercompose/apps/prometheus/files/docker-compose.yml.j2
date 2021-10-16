@@ -1,0 +1,101 @@
+version: "3.5"
+
+networks:
+  traefik:
+    external:
+      name: "{{ traefik_docker_network }}"
+{% if prometheus_docker_sd_enabled %}
+  prometheus:
+    external:
+      name: "{{ prometheus_docker_sd_network }}"
+{% endif %}
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    restart: always
+{% if prometheus_docker_sd_enabled %}
+    user: "{{ prometheus_user }}:{{ getent_group.docker[1] }}"
+{% else %}
+    user: "{{ prometheus_user }}"
+{% endif %}
+    command:
+      - '--storage.tsdb.path={{ prometheus_db_dir }}'
+      - '--storage.tsdb.retention.time={{ prometheus_storage_retention }}'
+      - '--storage.tsdb.retention.size={{ prometheus_storage_retention_size }}'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.external-url={{ prometheus_web_external_url }}'
+{% for flag, flag_value in prometheus_config_flags_extra.items() %}
+{% if not flag_value %}
+      - '--{{ flag }}'
+{% elif flag_value is string %}
+      - '--{{ flag }}={{ flag_value }}'
+{% elif flag_value is sequence %}
+{% for flag_value_item in flag_value %}
+      - '--{{ flag }}={{ flag_value_item }}'
+{% endfor %}
+{% endif %}
+{% endfor %}
+      - '--config.file={{ prometheus_config_dir }}/prometheus.yml'
+    environment:
+      GOMAXPROCS: {{ prometheus_gomaxprocs|default(ansible_processor_vcpus)|default(ansible_processor_count) }}
+    volumes:
+      - {{ prometheus_conf_dir }}:{{ prometheus_config_dir }}/
+      - {{ prometheus_data_dir }}:{{ prometheus_db_dir }}/
+{% if prometheus_docker_sd_enabled %}
+      - /var/run/docker.sock:/var/run/docker.sock
+{% endif %}
+    expose:
+      - 9090
+    networks:
+      - traefik
+{% if prometheus_docker_sd_enabled %}
+      - 'prometheus'
+{% endif %}
+    labels:
+      - "traefik.enable=true"
+      - 'traefik.docker.network={{ traefik_docker_network }}'
+      - "traefik.http.routers.{{ prometheus_docker_project }}.rule=Host(`{{ prometheus_domain }}`)"
+{% if traefik_prometheus_middlewares != false %}
+      - 'traefik.http.routers.{{ prometheus_docker_project }}.middlewares={{ traefik_prometheus_middlewares }}'
+{% endif %}
+      - 'com.centurylinklabs.watchtower.enable=true'
+      - 'com.centurylinklabs.watchtower.monitor-only=false'
+
+{% if prometheus_grafana_enabled %}
+  grafana:
+    image: grafana/grafana
+    restart: always
+    env_file:
+      - grafana.env
+    environment:
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_INSTALL_PLUGINS: '{{ prometheus_grafana_plugins|join(',') }}'
+{% for section, sectionvalues in prometheus_grafana_config.items() %}
+{% for option, values in sectionvalues.items() %}
+      GF_{{ (section + '_' + option) | replace('.','_')|upper }}: '{{ values }}'
+{% endfor %}
+{% endfor %}
+    expose:
+      - 3000
+    links:
+      - prometheus
+    depends_on:
+      - prometheus
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - 'traefik.docker.network={{ traefik_docker_network }}'
+      - "traefik.http.routers.{{ prometheus_docker_project }}_grafana.rule=Host(`{{ prometheus_grafana_domain }}`)"
+{% if traefik_prometheus_middlewares != false %}
+      - 'traefik.http.routers.{{ prometheus_docker_project }}_grafana.middlewares={{ traefik_prometheus_middlewares }}'
+{% endif %}
+      - 'com.centurylinklabs.watchtower.enable=true'
+      - 'com.centurylinklabs.watchtower.monitor-only=false'
+    volumes:
+      - {{ prometheus_grafana_data_dir }}:/var/lib/grafana
+      - ./grafana_datasource.yml:/etc/grafana/provisioning/datasources/datasource.yaml:ro
+{% endif %}

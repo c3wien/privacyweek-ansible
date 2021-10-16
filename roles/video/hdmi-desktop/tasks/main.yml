@@ -1,6 +1,6 @@
 ---
 - name: ensure desktop user is present, set groups
-  user: 
+  ansible.builtin.user:
     name: "{{ desktop_username }}"
     shell: /bin/bash
     groups: audio,video
@@ -8,12 +8,12 @@
     state: present
 
 - name: Install desktop packages
-  apt:
+  ansible.builtin.apt:
     state: present
-    name: [ task-lxde-desktop, pulseaudio, pavucontrol, unclutter, chromium, chromium-driver, molly-guard ]
+    name: [ task-lxde-desktop, pulseaudio, pavucontrol, unclutter, chromium, chromium-driver, molly-guard, nextcloud-desktop ]
 
 - name: enable lightdm autologon
-  blockinfile:
+  ansible.builtin.blockinfile:
     path: /etc/lightdm/lightdm.conf
     marker: "# {mark} ANSIBLE MANAGED BLOCK"
     insertafter: '#exit-on-failure=false'
@@ -34,4 +34,4 @@
 
 - name: set up vnc (set desktop_vnc_password to enable)
   include_tasks: vnc.yml
-  when: (desktop_vnc_password is defined) and (desktop_vnc_password|length > 0)
+  when: (desktop_vnc_password is defined)

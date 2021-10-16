@@ -1,0 +1,34 @@
+---
+
+traefik_docker_project: "traefik"
+traefik_letsencrypt_email: "{{ letsencrypt_email }}"
+traefik_log_level: "INFO"
+
+traefik_docker_network: "{{ traefik_docker_project }}"
+
+traefik_docker_dir: "/etc/docker-compose/{{ traefik_docker_project }}"
+traefik_data_dir: "/data/{{ traefik_docker_project }}"
+
+traefik_ports_http: "80"
+traefik_ports_https: "443"
+
+# traefik_dashboard_domain: "traefik.example.org"
+# traefik_dashboard_middlewares: "keycloak@docker"
+
+# traefik_oidc_middlewares:
+#   - name: my_auth
+#     secret: 'oidc secret'
+#     provider_uri: 'https://sso.tat.wine/auth/realms/master'
+#     client_id: 'auth-redirect'
+#     auth_host: 'auth.tat.wine'
+#     cookie_domain: 'tat.wine'
+#     traefik_alias: '$provider_uri' # needed to tell auth, that provider_uri can be accessed via traefik container
+
+traefik_oidc_middlewares: []
+
+traefik_errorpages_image: null
+traefik_errorpages_query: "/{status}.html"
+traefik_errorpages_codes: "500-599"
+traefik_errorpages_port: '8080'
+
+traefik_systemd_start: true

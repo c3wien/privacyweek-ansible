@@ -1,0 +1,64 @@
+---
+
+- name: devtools docker-compose install
+  hosts:
+   - dockercompose
+   - ops
+  tags:
+    - never
+    - create
+    - install
+  become: true
+  roles:
+    - role: dockercompose/install
+
+- name: traefik
+  hosts:
+   - ops
+  tags:
+    - never
+    - create
+    - install
+    - traefik
+  become: true
+  roles:
+    - role: dockercompose/apps/traefik
+      when: install_traefik is defined and install_traefik == True
+
+- name: gitlab
+  hosts: ops
+  tags:
+    - never
+    - create
+    - install
+    - gitlab
+  become: true
+  roles:
+    - role: dockercompose/apps/gitlab
+      when: install_gitlab is defined and install_gitlab == True
+
+- name: prometheus
+  hosts:
+   - ops
+  tags:
+    - never
+    - create
+    - install
+    - prometheus
+  become: true
+  roles:
+    - role: dockercompose/apps/prometheus
+      when: install_prometheus is defined and install_prometheus == True
+
+- name: prometheus-bbb-exporter
+  hosts:
+   - ops
+  tags:
+    - never
+    - create
+    - install
+    - prometheus
+  become: true
+  roles:
+    - role: dockercompose/apps/prometheus_bbb_exporter
+      when: install_bbb_exporter is defined and install_bbb_exporter == True and bbb_exporter_api_base_url is defined

@@ -13,7 +13,7 @@ Global {
   alpha=57
   setdocktype=1
   setpartialstrut=1
-  autohide=1
+  autohide={{ desktop_hide_panel | int }}
   heightwhenhidden=0
   usefontcolor=1
   fontcolor=#ffffff
@@ -52,7 +52,7 @@ Plugin {
       id=pcmanfm.desktop
     }
     Button {
-      id=lxde-x-www-browser.desktop
+      id=lxterminal.desktop
     }
   }
 }
@@ -60,24 +60,6 @@ Plugin {
   type=space
   Config {
     Size=4
-  }
-}
-Plugin {
-  type=wincmd
-  Config {
-    Button1=iconify
-    Button2=shade
-  }
-}
-Plugin {
-  type=space
-  Config {
-    Size=4
-  }
-}
-Plugin {
-  type=pager
-  Config {
   }
 }
 Plugin {
@@ -117,11 +99,6 @@ Plugin {
   }
 }
 Plugin {
-  type=tray
-  Config {
-  }
-}
-Plugin {
   type=dclock
   Config {
     ClockFmt=%R
@@ -129,16 +106,5 @@ Plugin {
     BoldFont=0
     IconOnly=0
     CenterText=0
-  }
-}
-Plugin {
-  type=launchbar
-  Config {
-    Button {
-      id=lxde-screenlock.desktop
-    }
-    Button {
-      id=lxde-logout.desktop
-    }
   }
 }

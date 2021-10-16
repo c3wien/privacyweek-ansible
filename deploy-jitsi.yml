@@ -1,0 +1,12 @@
+
+- name: jitsi
+  hosts: jitsi
+  tags:
+    - never
+    - create
+    - install
+    - jitsi
+  become: true
+  roles:
+    - role: jitsi
+    - role: ansible-role-jitsi-meet-exporter

@@ -1,0 +1,13 @@
+---
+
+- name: create compose dir {{ project_home_dir }}
+  ansible.builtin.file:
+    path: "{{ project_home_dir }}"
+    mode: "u=rwx,g=rx"
+    state: directory
+
+- name: create data dir {{ project_data_dir }}
+  ansible.builtin.file:
+    path: "{{ project_data_dir }}"
+    mode: "u=rwx,g=rx"
+    state: directory

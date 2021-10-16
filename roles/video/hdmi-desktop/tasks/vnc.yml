@@ -1,17 +1,17 @@
 ---
 - name: install vnc packages
-  apt:
+  ansible.builtin.apt:
     state: present
     name: [ tigervnc-scraping-server, novnc, websockify ]
 
 - name: create symlink for noVNC index.html
-  file:
+  ansible.builtin.file:
     src: "/usr/share/novnc/vnc.html"
     dest: "/usr/share/novnc/index.html"
     state: link
 
 - name: create .vnc directory
-  file:
+  ansible.builtin.file:
     path: /home/{{ desktop_username }}/.vnc
     state: directory
     owner: "{{ desktop_username }}"
@@ -20,16 +20,19 @@
 
 - name: set VNC password
   shell: echo {{ desktop_vnc_password }} | vncpasswd -f > /home/{{ desktop_username }}/.vnc/passwd
+  when: desktop_vnc_password != ''
+  changed_when: False
 
 - name: set correct permissions for VNC passwd file
-  file:
+  ansible.builtin.file:
     path: /home/{{ desktop_username }}/.vnc/passwd
     owner: "{{ desktop_username }}"
     group: "{{ desktop_username }}"
     mode: 0600
+  when: desktop_vnc_password != ''
 
 - name: add ~/run-tigervnc.sh script
-  template:
+  ansible.builtin.template:
     src: files/run-tigervnc.sh
     dest: "/home/{{ desktop_username }}/run-tigervnc.sh"
     owner: "{{ desktop_username }}"
@@ -39,17 +42,30 @@
   notify: restart display
 
 - name: add run-tigervnc.sh to autostart
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: "/home/{{ desktop_username }}/.config/lxsession/LXDE/autostart"
     regexp: "^@\/home\/{{ desktop_username }}\/run-tigervnc.sh"
     line: "@/home/{{ desktop_username }}/run-tigervnc.sh"
   notify: restart display
 
+- name: add novnc service
+  ansible.builtin.template:
+    src: files/novnc.service.j2
+    dest: '/etc/systemd/system/novnc.service'
+    owner: root
+    group: root
+
+- name: enable novnc service
+  ansible.builtin.systemd:
+    name: "novnc"
+    state: started
+    enabled: True
+
 - name: open noVNC ports
-  ufw:
+  community.general.ufw:
     rule: allow
     port: '{{ item }}'
     proto: tcp
   with_items:
-  - '{{ desktop_novnc_port }}'
+  - '{{ desktop_novnc_port | int }}'
 

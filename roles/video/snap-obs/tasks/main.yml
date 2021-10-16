@@ -1,0 +1,31 @@
+---
+
+- name: Install snap
+  apt:
+    state: present
+    name: [ snapd ]
+
+## TODO: use this when obs-studio snap access to $HOME is fixed.
+#
+#- name: Install obs-studio
+#  community.general.snap:
+#    name: obs-studio
+#    classic: yes
+#  register: snap_obs_install
+
+- name: snap connects for obs-studio
+  ansible.builtin.shell: |
+    snap install obs-studio --devmode
+    snap connect obs-studio:alsa
+    snap connect obs-studio:audio-record
+    snap connect obs-studio:avahi-control
+    snap connect obs-studio:camera
+    snap connect obs-studio:jack1
+    snap connect obs-studio:kernel-module-observe
+    snap connect obs-studio:avahi-control
+    snap connect obs-studio:removable-media
+    snap connect obs-studio:raw-usb
+    snap connect obs-studio:joystick
+  become: true
+  args:
+    creates: "/snap/obs-studio/"

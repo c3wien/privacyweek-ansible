@@ -14,3 +14,8 @@ nginx_rtmp_applications:
 #      path: "/srv/hls/"
 #      variants:
 #      - '_low BANDWIDTH=288000'
+
+
+
+nginx_rtmp_hls_user: www-data
+nginx_rtmp_hls_group: www-data

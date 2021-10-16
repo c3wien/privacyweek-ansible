@@ -1,0 +1,22 @@
+---
+- name: fix grafana permissions
+  ansible.builtin.shell: |
+    docker-compose run --rm --user="root" --entrypoint chown grafana -R grafana /var/lib/grafana
+  become: true
+  args:
+    chdir: "{{ prometheus_docker_dir }}"
+
+- name: restart prometheus
+  ansible.builtin.systemd:
+    name: "docker-compose@{{ prometheus_docker_project }}"
+    state: restarted
+    enabled: true
+  when: prometheus_systemd_start
+
+- name: reload prometheus
+  ansible.builtin.shell: |
+    docker-compose kill -s SIGHUP prometheus
+  become: true
+  args:
+    chdir: "{{ prometheus_docker_dir }}"
+  when: prometheus_systemd_start

@@ -4,6 +4,10 @@ desktop_username: "{{ username }}"
 desktop_resolution_mode: 1280x720
 desktop_resolution_rate: 50
 
+# add virtual monitor for VNC and use HDMI as extended monitor
+desktop_extend_virtual: false
+desktop_driver: "intel"
+
 pulseaudio_defaultsamplerate: 48000
 pulseaudio_defaultsamplechannels: 2
 
@@ -13,7 +17,9 @@ pulseaudio_sink: None
 pulseaudio_sink_volume: '0.5'
 
 desktop_color: '#954b97' # pw20 violet
-desktop_background_image: "files/misc/PW20_Key_Visual_QF_Karabiner_RGB_oB_oT.jpg"
+desktop_background_image: "files/misc/Datenmeer_flat_Leuchtturm_oT_RGB.jpg"
+desktop_hide_panel: false
+
 
 desktop_vnc_password: ''
 desktop_novnc_port: 5800

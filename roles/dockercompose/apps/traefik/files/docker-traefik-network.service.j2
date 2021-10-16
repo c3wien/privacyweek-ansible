@@ -1,0 +1,14 @@
+[Unit]
+Description=add shared {{ traefik_docker_network }} docker network
+Requires=docker.service
+After=docker.service
+Before=docker-compose@*.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=sh -c 'docker network create -d bridge {{ traefik_docker_network }} || true'
+ExecStop=docker network rm {{ traefik_docker_network }}
+
+[Install]
+WantedBy=multi-user.target

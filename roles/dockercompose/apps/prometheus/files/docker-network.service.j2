@@ -1,0 +1,14 @@
+[Unit]
+Description=add shared {{ prometheus_docker_sd_network }} docker network
+Requires=docker.service
+After=docker.service
+Before=docker-compose@*.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=sh -c 'docker network create -d bridge {{ prometheus_docker_sd_network }} || true'
+ExecStop=docker network rm {{ prometheus_docker_sd_network }}
+
+[Install]
+WantedBy=multi-user.target

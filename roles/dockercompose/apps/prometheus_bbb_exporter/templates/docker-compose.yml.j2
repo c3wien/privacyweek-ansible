@@ -1,0 +1,26 @@
+version: "3.5"
+
+networks:
+  prometheus:
+    external:
+      name: "{{ prometheus_docker_sd_network | default('prometheus') }}"
+
+services:
+  bbb-exporter:
+    image: greenstatic/bigbluebutton-exporter:v0.6.0
+    expose:
+      - 9688
+    environment:
+      RECORDINGS_METRICS_READ_FROM_DISK: "false"
+      API_BASE_URL: "{{ bbb_exporter_api_base_url }}"
+      API_SECRET:   "{{ bbb_exporter_api_secret }}"
+    restart: unless-stopped
+    networks:
+      - 'prometheus'
+    labels:
+      - "prometheus-job=bbb-exporter"
+      - "prometheus-port=9688"
+      - "prometheus-bbb-api={{ bbb_exporter_api_base_url }}"
+      - "prometheus-instance={{ bbb_exporter_label_instance | default('') }}"
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.monitor-only=false"

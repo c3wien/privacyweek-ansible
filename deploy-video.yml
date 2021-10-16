@@ -5,17 +5,23 @@
   serial: 1
   roles:
   - role: video/hdmi-desktop
+  - role: video/snap-obs
   tags:
   - never
   - install
+  - hdmi-desktop
 
 - name: setting up jitsi-drones
   hosts: jitsi_drones
   become: true
   serial: 1
   roles:
-  - role: remotestudio/install
+  - role: remotestudio/clone
   - role: video/jitsi-client
+  tags:
+  - never
+  - install
+  - jitsi
 
 - name: setting up pi_audio settings
   hosts: pi_audio
@@ -25,6 +31,7 @@
   tags:
   - never
   - install
+  - music
 
 - name: setting up mpd pausenmusik
   hosts: music
@@ -34,6 +41,7 @@
   tags:
   - never
   - install
+  - music
 
 - name: setting up nginx rtmp servers
   hosts: rtmp
@@ -60,3 +68,50 @@
   - decklink
   - stream
 
+#- name: setting up remotestudio control interface
+  #hosts: control_ui
+  #become: true
+  #roles:
+  #- role: remotestudio/clone
+  #- role: remotestudio/control-ui
+  #- role: remotestudio/atem-client
+  #- role: contrib/nginx
+  #tags:
+  #- never
+  #- install
+  #- control
+  #- regie
+
+
+#- name: setting up remotestudio atem-client
+  #hosts: atem_client
+  #become: true
+  #roles:
+  #- role: remotestudio/clone
+  #- role: remotestudio/atem-client
+  #tags:
+  #- never
+  #- install
+  #- atem
+  #- regie
+
+- name: setting up recording
+  hosts: recorders
+  become: true
+  roles:
+  - role: video/recording-worker
+  tags:
+  - never
+  - install
+  - recording
+
+
+- name: setting up voc crs-tools
+  hosts: recorders
+  become: true
+  roles:
+  - role: voc/crs-tools
+  tags:
+  - never
+  - install
+  - crs-tools

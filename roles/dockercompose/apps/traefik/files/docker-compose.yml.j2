@@ -1,0 +1,123 @@
+version: '3.5'
+
+networks:
+  traefik:
+    external:
+      name: "{{ traefik_docker_network }}"
+
+services:
+  traefik:
+    image: traefik:2.4
+    container_name: traefik
+    volumes:
+      - {{ traefik_data_dir }}:/letsencrypt/
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - traefik
+    restart: unless-stopped
+    labels:
+      - "prometheus-job=traefik"
+      - "prometheus-port=8082"
+      - 'com.centurylinklabs.watchtower.enable=true'
+      - 'com.centurylinklabs.watchtower.monitor-only=true'
+{% if traefik_dashboard_domain is defined %}
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.api.rule=Host(`{{ traefik_dashboard_domain }}`)'
+      - 'traefik.http.routers.api.entrypoints=https'
+      - 'traefik.http.routers.api.service=api@internal'
+{% if traefik_dashboard_middlewares is defined %}
+      - 'traefik.http.routers.api.middlewares={{ traefik_dashboard_middlewares }}'
+{% endif %}
+{% endif %}
+    ports:
+      - {{ traefik_ports_http }}:80
+      - {{ traefik_ports_https }}:443
+    expose:
+      - 8082
+    command:
+      - '--api'
+      - '--providers.docker=true'
+      - '--providers.docker.exposedByDefault=false'
+      - '--metrics.prometheus=true'
+      - '--metrics.prometheus.entryPoint=metrics'
+      - '--metrics.prometheus.addEntryPointsLabels=true'
+      - '--metrics.prometheus.addServicesLabels=true'
+      - '--entryPoints.metrics.address=:8082'
+      - '--entrypoints.http=true'
+      - '--entrypoints.http.address=:80'
+      - '--entrypoints.http.http.redirections.entrypoint.to=https'
+      - '--entrypoints.http.http.redirections.entrypoint.scheme=https'
+      - '--entrypoints.https=true'
+      - '--entrypoints.https.address=:443'
+      - '--entrypoints.https.http.tls=true'
+      - '--entrypoints.https.http.tls.certresolver=letsencrypt'
+      - '--certificatesResolvers.letsencrypt.acme.email={{ traefik_letsencrypt_email }}'
+      - '--certificatesResolvers.letsencrypt.acme.storage=/letsencrypt/acme.json'
+      - '--certificatesResolvers.letsencrypt.acme.httpChallenge.entryPoint=http'
+      - '--log=true'
+      - '--log.level={{ traefik_log_level }}'
+#      - '--log.filepath=/var/log/traefik.log'
+
+
+{% if traefik_errorpages_image %}
+# errorpages
+    errorservice:
+        image: {{ traefik_errorpages_image }}
+        expose:
+          - {{ traefik_errorpages_port }}
+        labels:
+            - "traefik.enable=true"
+            #- "traefik.http.routers.errorpage.priority=1"
+            #- "traefik.http.routers.errorpage.rule=HostRegexp(`{host:.+}`)"
+            - "traefik.http.middlewares.errorpage.errors.status={{ traefik_errorpages_codes }}"
+            - "traefik.http.middlewares.errorpage.errors.service=errorservice"
+            - "traefik.http.middlewares.errorpage.errors.query={{ traefik_errorpages_query }}"
+            - 'com.centurylinklabs.watchtower.enable=true'
+            - 'com.centurylinklabs.watchtower.monitor-only=false'
+{% endif %}
+
+# oidc middlewares
+
+{% for m in traefik_oidc_middlewares %}
+  {{ m.name }}:
+    image: thomseddon/traefik-forward-auth
+    hostname: '{{ m.name }}'
+    restart: unless-stopped
+    env_file:
+      - '{{ m.name }}.env'
+    environment:
+      DEFAULT_PROVIDER: oidc
+      PROVIDERS_OIDC_ISSUER_URL: '{{ m.provider_uri }}'
+#      PROVIDERS_OIDC_CLIENT_ID: ''      # set in env
+#      PROVIDERS_OIDC_CLIENT_SECRET: ''  # set in env
+#      SECRET: ''         # set in env
+      # We are in `Auth Host` mode.
+      # This instance will be available at auth.localhost:
+      AUTH_HOST: '{{ m.auth_host }}'
+      COOKIE_DOMAIN: '{{ m.cookie_domain }}'
+      LOG_LEVEL: info
+      CSRF_COOKIE_NAME: '_forward_auth_csrf'
+    expose:
+      - 4181
+    networks:
+      - traefik
+    depends_on:
+      - traefik
+{% if m.traefik_alias is defined %}
+    external_links:
+      - traefik:{{ m.traefik_alias }}
+{% endif %}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.{{ m.name }}.rule=Host(`{{ m.auth_host }}`)"
+      - "traefik.http.routers.{{ m.name }}.entrypoints=https"
+      - "traefik.http.routers.{{ m.name }}.middlewares={{ m.name }}"
+      - "traefik.http.services.{{ m.name }}.loadbalancer.passhostheader=true"
+      # the middleware is registered here:
+      # (note: it uses a route to this service that DOES NOT use the forward-auth middleware)
+      - "traefik.http.middlewares.{{ m.name }}.forwardAuth.address=http://{{ m.name }}:4181"
+      - "traefik.http.middlewares.{{ m.name }}.forwardAuth.trustForwardHeader=true"
+      - "traefik.http.middlewares.{{ m.name }}.forwardAuth.authResponseHeaders=X-Forwarded-User"
+      - 'com.centurylinklabs.watchtower.enable=true'
+      - 'com.centurylinklabs.watchtower.monitor-only=true'
+{% endfor %}

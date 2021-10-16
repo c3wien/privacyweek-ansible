@@ -1,0 +1,123 @@
+version: "3.5"
+
+networks:
+  traefik:
+    external:
+      name: "{{ traefik_docker_network }}"
+
+services:
+  gitlab:
+    image: 'gitlab/gitlab-ce:latest'
+    restart: always
+    hostname: '{{ gitlab_domain }}'
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'https://{{ gitlab_domain }}'
+        gitlab_rails['initial_root_password'] = "${INITIAL_ROOT_PASSWORD}"
+        gitlab_rails['gitlab_default_theme'] = 7
+        nginx['redirect_http_to_https'] = false
+        nginx['listen_port'] = 8929
+        nginx['listen_https'] = false
+        nginx['proxy_set_headers'] = {
+          'Host' => '$$http_host',
+          'X-Forwarded-Proto' => 'https',
+          'X-Forwarded-Ssl' => 'on'
+        }
+        nginx['client_max_body_size'] = '2G'
+        gitlab_rails['smtp_enable'] = true
+        gitlab_rails['smtp_address'] = "{{ gitlab_smtp_address }}"
+        gitlab_rails['smtp_port'] = {{ gitlab_smtp_port }}
+        gitlab_rails['smtp_domain'] = "{{ base_domain }}"
+        gitlab_rails['smtp_user_name'] = "${SMTP_USERNAME}"
+        gitlab_rails['smtp_password'] = "${SMTP_PASSWORD}"
+        gitlab_rails['smtp_domain'] = "${SMTP_DOMAIN}"
+        gitlab_rails['smtp_authentication'] = "login"
+        gitlab_rails['smtp_tls'] = true
+        # gitlab_rails['smtp_openssl_verify_mode'] = 'none'
+        gitlab_rails['gitlab_email_from'] = '{{ gitlab_email_from }}'
+        gitlab_rails['gitlab_email_display_name'] = '{{ gitlab_email_display_name }}'
+        gitlab_rails['gitlab_email_reply_to'] = '{{ gitlab_email_reply_to }}'
+        nginx['worker_processes'] = 2
+        postgresql['max_worker_processes'] = 2
+        #unicorn['worker_timeout'] = 60 #old?
+        #unicorn['worker_processes'] = 2 #old?
+        sidekiq['concurrency'] = 5
+        postgresql['shared_buffers'] = "256MB"
+        gitlab_rails['artifacts_enabled'] = true
+        gitlab_rails['artifacts_path'] = "/var/opt/gitlab/gitlab-artifacts"
+        gitlab_rails['lfs_enabled'] = true
+        gitlab_rails['time_zone'] = "UTC"
+        gitlab_rails['usage_ping_enabled'] = false
+        gitlab_rails['seat_link_enabled'] = false
+        #
+        # Docker registry
+        #
+        registry_external_url 'https://{{ gitlab_registry_domain }}'
+        gitlab_rails['registry_enabled'] = true
+        #gitlab_rails['registry_issuer'] = "omnibus-gitlab-issuer"
+        registry_nginx['listen_port'] = 5050
+        registry_nginx['listen_https'] = false
+        registry_nginx['redirect_http_to_https'] = false
+        registry_nginx['proxy_set_headers'] = {
+          "Host" => "$$http_host",
+          "X-Forwarded-Proto" => "https",
+          "X-Forwarded-Ssl" => "on"
+        }
+        # optimize for small environment
+        sidekiq['max_concurrency'] = 10
+        puma['worker_processes'] = 0
+        gitaly['ruby_max_rss'] = 200_000_000
+        gitaly['concurrency'] = [
+          {
+            'rpc' => "/gitaly.SmartHTTPService/PostReceivePack",
+            'max_per_repo' => 3
+          }, {
+            'rpc' => "/gitaly.SSHService/SSHUploadPack",
+            'max_per_repo' => 3
+          }
+        ]
+        gitaly['env'] = {
+          'GITALY_COMMAND_SPAWN_MAX_PARALLEL' => '2'
+        }
+        # disable other features
+        grafana['enable'] = false
+        # To completely disable prometheus, and all of it's exporters, set to false
+        prometheus_monitoring['enable'] = false
+        alertmanager['enable'] = false
+        node_exporter['enable'] = false
+        redis_exporter['enable'] = false
+        postgres_exporter['enable'] = false
+    expose:
+        - '8929'
+        - '5050'
+    ports:
+        - '{{gitlab_ssh_port}}:22'
+    volumes:
+        - '{{ gitlab_data_dir }}/gitlab/config:/etc/gitlab'
+        - '{{ gitlab_data_dir }}/gitlab/logs:/var/log/gitlab'
+        - '{{ gitlab_data_dir }}/gitlab/data:/var/opt/gitlab'
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - 'traefik.docker.network={{ traefik_docker_network }}'
+
+      - "traefik.http.routers.{{gitlab_docker_project}}.rule=Host(`{{ gitlab_domain }}`)"
+
+      - "traefik.http.routers.{{gitlab_docker_project}}_registry.rule=Host(`{{ gitlab_registry_domain }}`)"
+      - 'traefik.http.routers.{{gitlab_docker_project}}_registry.entrypoints=https'
+      - "traefik.http.routers.{{gitlab_docker_project}}_registry.service={{gitlab_docker_project}}_registry"
+      - "traefik.http.services.{{gitlab_docker_project}}_registry.loadbalancer.server.port=5050"
+      - "traefik.http.services.{{gitlab_docker_project}}_registry.loadbalancer.server.scheme=http"
+      - "traefik.http.services.{{gitlab_docker_project}}_registry.loadbalancer.passhostheader=true"
+
+      - 'traefik.http.routers.{{gitlab_docker_project}}.entrypoints=https'
+      - "traefik.http.routers.{{gitlab_docker_project}}.service={{gitlab_docker_project}}"
+      - "traefik.http.services.{{gitlab_docker_project}}.loadbalancer.server.port=8929"
+      - "traefik.http.services.{{gitlab_docker_project}}.loadbalancer.server.scheme=http"
+      - "traefik.http.services.{{gitlab_docker_project}}.loadbalancer.passhostheader=true"
+
+    # I had problems with the health check. Sometimes it reported unhealthyness and therefore Traefik removed
+    # the container, so I turned it off. Maybe it works by now.
+    healthcheck:
+      disable: true

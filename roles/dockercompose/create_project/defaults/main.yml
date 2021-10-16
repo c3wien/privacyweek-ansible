@@ -1,0 +1,6 @@
+---
+
+dockercompose_datadir: "/data"
+
+project_home_dir: "/etc/docker-compose/{{ project }}"
+project_data_dir: "{{ dockercompose_datadir }}/{{ project }}"

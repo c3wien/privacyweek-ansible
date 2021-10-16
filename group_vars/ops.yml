@@ -1,0 +1,100 @@
+
+base_domain: "{{ event_domains.base }}"
+infra_domain: "{{ event_domains.ops }}"
+smtp_host: "dergeraet.c3w.at"
+
+gitlab_domain: "dev.{{ infra_domain }}"
+gitlab_registry_domain: "registry.{{ infra_domain }}"
+gitlab_email_from: "office@privacyweek.at"
+
+traefik_oidc_middlewares:
+  - name: gitlab_auth
+    provider_uri: 'https://{{ gitlab_domain }}'
+    auth_host: 'auth.{{ infra_domain }}'
+    cookie_domain: '{{ infra_domain }}'
+    traefik_alias: '{{ gitlab_domain }}'
+
+traefik_dashboard_domain: "traefik.{{ infra_domain }}"
+traefik_dashboard_middlewares: "gitlab_auth@docker"
+
+
+# prometheus
+prometheus_domain: "prometheus.{{ infra_domain }}"
+prometheus_gomaxprocs: 1
+prometheus_storage_retention: "60d"
+prometheus_storage_retention_size: "5GB"
+traefik_prometheus_middlewares: "gitlab_auth@docker"
+prometheus_external_labels:
+  environment: "pw21"
+
+prometheus_grafana_domain: "graphs.{{ infra_domain }}"
+prometheus_grafana_enabled: true
+
+# exporters
+bbb_exporter_api_base_url: "https://{{ event_domains.bbb }}/bigbluebutton/api/"
+bbb_exporter_api_secret: "${API_SECRET}"
+# force same instance label as node-exporter
+bbb_exporter_label_instance: '{{ event_domains.bbb }}:9100'
+
+# prometheus configs
+# update with:
+# $ ansible-playbook deploy-ops.yml -t prometheus
+prometheus_scrape_configs:
+  - job_name: "node-exporter"
+    static_configs:
+      - targets:
+        - "pw21-router:9100"
+        - "{{ event_domains.bbb }}:9100"
+        - "cloud.privacyweek.at:9100"
+        - "pw21-jitsi:9100"
+        - "pw21-runner:9100"
+        labels:
+          source: node-exporter
+  - job_name: "jitsi-exporter"
+    static_configs:
+      - targets:
+        - "pw21-jitsi:9888"
+        labels:
+          source: jitsi-exporter
+          instance: 'pw21-jitsi:9100'
+
+prometheus_alert_rules:
+  - alert: BigBlueButtonApiDown
+    expr: 'bbb_api_up != 1'
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      description: '{% raw %}{{ $labels.bbb_api }} API is down{% endraw %}'
+      summary: '{% raw %}{{ $labels.bbb_api }} API is down{% endraw %}'
+
+  - alert: NodeMemoryAvailableLow
+    expr: '(node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) < 0.1'
+    for: 1h
+    labels:
+      severity: critical
+    annotations:
+      summary: '{% raw %}{{ $labels.instance }} available Memory is LOW.{% endraw %}'
+  - alert: NodeNetBondingDeviceInactive
+    expr: 'node_bonding_active < node_bonding_slaves'
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: '{% raw %}{{ $labels.instance }} Bonding interface {{ $labels.master }} has inactive devices.{% endraw %}'
+  - alert: NodeMDadmDiskFailure
+    expr: 'node_md_disks_active < node_md_disks'
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      description: '{% raw %}{{ $labels.instance }} MD Disk Failure: {{ $labels.device }}{% endraw %}'
+      summary: '{% raw %}{{ $labels.instance }} MD Disk Failure: {{ $labels.device }}{% endraw %}'
+  - alert: NodeZfsArcMemLow
+    expr: 'node_zfs_arc_memory_free_bytes < 1e9'
+    for: 1h
+    labels:
+      severity: critical
+    annotations:
+      description: '{% raw %}{{ $labels.instance }} ZFS ARC Memory Low{% endraw %}'
+      summary: '{% raw %}{{ $labels.instance }} ZFS ARC Memory Low{% endraw %}'

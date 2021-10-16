@@ -1,0 +1,9 @@
+---
+
+docker_registries: []
+
+# docker_registries:
+#   - name: 'my registry name (documentation only)'
+#     registry_url: your.private.registry.io # default "https://index.docker.io/v1/"
+#     username: yourself
+#     password: secrets3

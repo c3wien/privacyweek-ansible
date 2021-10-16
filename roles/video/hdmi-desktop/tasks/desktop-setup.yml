@@ -1,6 +1,12 @@
 ---
+- name: add x11 dummy monitor config
+  ansible.builtin.template:
+    src: files/xorg-dummy-monitor.conf
+    dest: "/etc/X11/xorg.conf.d/01-dummy-monitor.conf"
+    backup: no
+
 - name: add ~/display-xrandr.sh script
-  template:
+  ansible.builtin.template:
     src: files/display-xrandr.sh
     dest: "/home/{{ desktop_username }}/display-xrandr.sh"
     owner: "{{ desktop_username }}"
@@ -10,73 +16,73 @@
   notify: restart display
 
 - name: add display-xrandr.sh to autostart
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: "/home/{{ desktop_username }}/.config/lxsession/LXDE/autostart"
     regexp: "^@\/home\/{{ desktop_username }}\/display-xrandr.sh"
     line: "@/home/{{ desktop_username }}/display-xrandr.sh"
   notify: restart display
 
 - name: disable xscreensaver
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: "/home/{{ desktop_username }}/.config/lxsession/LXDE/autostart"
     regexp: "^@xscreensaver -no-splash"
     line: "# @xscreensaver -no-splash"
   notify: restart display
 
 - name: disable xscreensaver
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: "/home/{{ desktop_username }}/.config/lxsession/LXDE/autostart"
     regexp: "^@unclutter"
     line: "@unclutter -idle 2 -root"
   notify: restart display
 
 - name: ensure clipit config dir
-  file:
+  ansible.builtin.file:
     path: "/home/{{ desktop_username }}/.config/clipit/"
     state: directory
     owner: "{{ desktop_username }}"
     group: "{{ desktop_username }}"
 
 - name: disable clipit popup
-  template:
+  ansible.builtin.template:
     src: files/misc/clipitrc
     dest: "/home/{{ desktop_username }}/.config/clipit/clipitrc"
 
 - name: copy desktop background image
-  copy:
+  ansible.builtin.copy:
     src: "{{ desktop_background_image }}"
     dest: "/home/{{ desktop_username }}/desktop-background.jpg"
 
 - name: set desktop background
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: "/home/{{ desktop_username }}/.config/pcmanfm/LXDE/desktop-items-0.conf"
     regexp: "^wallpaper"
     line: "wallpaper=/home/{{ desktop_username }}/desktop-background.jpg"
   notify: restart display
 
 - name: set background color
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: "/home/{{ desktop_username }}/.config/pcmanfm/LXDE/desktop-items-0.conf"
     regexp: "^desktop_fg"
     line: "desktop_fg=#{{ desktop_color }}"
   notify: restart display
 
 - name: remove trash icon from desktop
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: "/home/{{ desktop_username }}/.config/pcmanfm/LXDE/desktop-items-0.conf"
     regexp: "^show_trash"
     line: "show_trash=0"
   notify: restart display
 
 - name: ensure add panel config dir
-  file:
+  ansible.builtin.file:
     path: "/home/{{ desktop_username }}/.config/lxpanel/LXDE/panels/"
     state: directory
     owner: "{{ desktop_username }}"
     group: "{{ desktop_username }}"
 
 - name: set task panel config
-  copy:
-    src: roles/video-desktop/files/misc/panels
+  ansible.builtin.copy:
+    src: files/misc/panels
     dest: "/home/{{ desktop_username }}/.config/lxpanel/LXDE/panels/panel"
   notify: restart display

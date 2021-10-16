@@ -2,8 +2,7 @@
 
 - name: make sure docker-compose is set up
   import_role:
-    name: contrib/docker-compose
-
+    name: dockercompose/install
 
 - name: docker-compose config directory
   file:

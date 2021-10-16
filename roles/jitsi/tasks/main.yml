@@ -1,0 +1,96 @@
+---
+
+- set_fact: jitsi_meet_config="{{ jitsi_meet_config_defaults|combine(jitsi_meet_config) }}"
+
+- name: Install gnupg utils
+  ansible.builtin.apt:
+    pkg:
+    - ca-certificates
+    - file
+    - gnupg
+    - lsb-release
+    install_recommends: no
+    state: present
+
+- name: Add Jitsi packaging GPG key
+  ansible.builtin.apt_key:
+    url: https://download.jitsi.org/jitsi-key.gpg.key
+    state: present
+
+- name: Add Jitsi repository
+  ansible.builtin.apt_repository:
+    repo: deb https://download.jitsi.org stable/
+    state: present
+    filename: 'jitsi-stable'
+    update_cache: yes
+
+- name: Set debconf options for jitsi-meet
+  ansible.builtin.debconf:
+    name: "{{ item.name }}"
+    question: "{{ item.question }}"
+    value: "{{ item.value }}"
+    vtype: "{{ item.vtype }}"
+  loop:
+    - name: jitsi-videobridge2
+      question: jitsi-videobridge/jvb-hostname
+      value: "{{ jitsi_meet_server_name }}"
+      vtype: string
+    - name: jitsi-meet-web-config
+      question: jitsi-meet/cert-choice
+      value: "{{ jitsi_meet_cert_choice }}"
+      vtype: select
+
+- name: Install jitsi-meet
+  ansible.builtin.apt:
+    pkg: "{{ jitsi_meet_packages }}"
+    install_recommends: no
+    state: present
+
+- name: configure UFW
+  community.general.ufw:
+    rule: allow
+    port: '{{ item.port }}'
+    proto: '{{ item.proto }}'
+  loop:
+  - port: 80
+    proto: 'tcp'
+  - port: 443
+    proto: 'tcp'
+  - port: 10000
+    proto: 'udp'
+  - port: 3478
+    proto: 'udp'
+  - port: 5349
+    proto: 'tcp'
+
+- name: run /usr/share/jitsi-meet/scripts/install-letsencrypt-cert.sh
+  ansible.builtin.shell: |
+    echo {{ letsencrypt_email }} | \
+    /usr/share/jitsi-meet/scripts/install-letsencrypt-cert.sh
+  become: true
+  args:
+    creates: "/etc/letsencrypt/live/{{ jitsi_meet_server_name }}/fullchain.pem"
+  when: jitsi_generate_letsencrypt and letsencrypt_email
+
+- name: write jitsi-meet config.js
+  ansible.builtin.template:
+    src: files/meet-config.js.j2
+    dest: "/etc/jitsi/meet/{{ jitsi_meet_server_name }}-config.js"
+    backup: true
+
+- name: enable statistics endpoint http://localhost:8080/colibri/stats
+  ansible.builtin.lineinfile:
+    dest: "/etc/jitsi/videobridge/config"
+    regexp: "^JVB_OPTS="
+    line: 'JVB_OPTS="--apis=rest,xmpp"'
+  notify: restart videobridge
+
+- name: customize /usr/share/jitsi-meet/interface_config.js
+  blockinfile:
+    path: /usr/share/jitsi-meet/interface_config.js
+    marker: "    // {mark} ANSIBLE MANAGED BLOCK"
+    insertbefore: "    \/\/ List of undocumented settings"
+    content: |
+      {% for key, value in jitsi_interface_config.items() %}
+          {{ key }}: {% if value is string %}'{{ value }}'{% else %}{{ value|lower }}{% endif %},
+      {% endfor %}

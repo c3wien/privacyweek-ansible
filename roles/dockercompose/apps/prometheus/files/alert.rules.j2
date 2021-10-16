@@ -1,0 +1,7 @@
+{{ ansible_managed | comment }}
+# licensed under MIT License https://github.com/cloudalchemy/ansible-prometheus
+groups:
+- name: ansible managed alert rules
+  rules:
+  {{ prometheus_alert_rules_default | to_nice_yaml(indent=2) | indent(2,False) }}
+  {{ prometheus_alert_rules | to_nice_yaml(indent=2) | indent(2,False) }}

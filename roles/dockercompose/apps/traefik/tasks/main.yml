@@ -1,0 +1,58 @@
+---
+
+- name: create docker-compose project dir
+  ansible.builtin.include_role:
+    name: dockercompose/create_project
+  vars:
+    project: "{{ traefik_docker_project }}"
+
+- name: write docker-traefik-network.service
+  ansible.builtin.template:
+    src: files/docker-traefik-network.service.j2
+    dest: '/etc/systemd/system/docker-{{ traefik_docker_project }}-network.service'
+
+- meta: flush_handlers
+
+- name: write docker-compose.yml
+  ansible.builtin.template:
+    src: files/docker-compose.yml.j2
+    dest: "{{ traefik_docker_dir }}/docker-compose.yml"
+
+- name: ufw open {{ traefik_ports_http }}/{{ traefik_ports_https }}
+  community.general.ufw:
+    rule: allow
+    port: '{{ item }}'
+    proto: tcp
+  with_items:
+    - '{{ traefik_ports_http }}'
+    - '{{ traefik_ports_https }}'
+
+- name: generate env files for oidc middlewares
+  ansible.builtin.shell: |
+    cat <<EOF > {{ item.name }}.env
+    # INFO: these values are only generated once, not updated via ansible
+    SECRET=$(openssl rand -base64 32)
+    PROVIDERS_OIDC_CLIENT_ID=changeme-env
+    PROVIDERS_OIDC_CLIENT_SECRET=changeme-env
+    EOF
+    chmod 600 {{ item.name }}.env
+  become: true
+  args:
+    chdir: "{{ traefik_docker_dir }}"
+    creates: "{{ item.name }}.env"
+  loop: '{{ traefik_oidc_middlewares }}'
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: enable systemd network project
+  ansible.builtin.systemd:
+    name: "docker-{{ traefik_docker_project }}-network.service"
+    state: started
+    enabled: true
+
+- name: enable systemd service docker-compose@{{ traefik_docker_project }}
+  ansible.builtin.systemd:
+    name: "docker-compose@{{ traefik_docker_project }}"
+    state: started
+    enabled: true
+  when: traefik_systemd_start

@@ -1,0 +1,19 @@
+---
+
+- name: create docker-compose project dir
+  ansible.builtin.include_role:
+    name: dockercompose/create_project
+  vars:
+    project: "{{ bbb_exporter_docker_project }}"
+
+- name: write docker-compose.yml
+  ansible.builtin.template:
+    src: templates/docker-compose.yml.j2
+    dest: "{{ bbb_exporter_docker_dir }}/docker-compose.yml"
+
+- name: enable systemd service docker-compose@{{ bbb_exporter_docker_project }}
+  ansible.builtin.systemd:
+    name: "docker-compose@{{ bbb_exporter_docker_project }}"
+    state: started
+    enabled: true
+  when: bbb_exporter_systemd_start

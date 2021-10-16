@@ -1,0 +1,4 @@
+[submodule "systemli.ansible-role-jitsi-meet-exporter"]
+	path = roles/ansible-role-jitsi-meet-exporter
+	url = https://github.com/systemli/ansible-role-jitsi-meet-exporter.git
+	branch = master

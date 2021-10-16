@@ -1,6 +1,0 @@
----
-# HP ProDesk G1 DM USFF
-
-pulseaudio_card: 'alsa_card.pci-0000_00_03.0'
-pulseaudio_card_profile: 'output:hdmi-stereo'
-pulseaudio_sink: 'alsa_output.pci-0000_00_03.0.hdmi-stereo'

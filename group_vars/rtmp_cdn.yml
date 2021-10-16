@@ -1,0 +1,32 @@
+---
+
+nginx_rtmp_hls_dir: /srv/hls/
+
+nginx_rtmp_applications:
+  orig:
+    options:
+      meta: 'copy'
+      live: 'on'
+    allow_publish:
+    - "192.168.42.0/24"
+    deny_publish:
+    - "all"
+    hls:
+      path: "/srv/hls/orig/"
+      variants:
+      - '_sd BANDWIDTH=819200'
+      - '_hd BANDWIDTH=2560000'
+  trans:
+    options:
+      meta: 'copy'
+      live: 'on'
+    allow_publish:
+    - "192.168.42.0/24"
+    deny_publish:
+    - "all"
+    hls:
+      path: "/srv/hls/trans/"
+      variants:
+      - '_sd BANDWIDTH=819200'
+      - '_hd BANDWIDTH=2560000'
+

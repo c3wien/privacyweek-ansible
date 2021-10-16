@@ -1,0 +1,33 @@
+---
+# https://github.com/ambroisemaupate/docker-server-env/blob/master/compose/example-gitlab-traefik/
+
+- name: create docker-compose project dir
+  ansible.builtin.include_role:
+    name: dockercompose/create_project
+  vars:
+    project: "{{ gitlab_docker_project }}"
+
+- name: write docker-compose.yml
+  ansible.builtin.template:
+    src: files/docker-compose.yml.j2
+    dest: "{{ gitlab_docker_dir }}/docker-compose.yml"
+
+- name: generate database and rails secrets
+  ansible.builtin.shell: |
+    cat <<EOF > .env
+    # INFO: these values are only generated once, not updated via ansible
+    INITIAL_ROOT_PASSWORD=$(openssl rand -base64 32)
+    EOF
+    chmod 600 .env
+  become: true
+  args:
+    chdir: "{{ gitlab_docker_dir }}"
+    creates: ".env"
+
+- name: enable systemd service docker-compose@{{ gitlab_docker_project }}
+  ansible.builtin.systemd:
+    name: "docker-compose@{{ gitlab_docker_project }}"
+    state: started
+    enabled: true
+  when: gitlab_systemd_start
+

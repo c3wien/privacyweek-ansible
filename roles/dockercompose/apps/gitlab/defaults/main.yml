@@ -1,0 +1,19 @@
+---
+
+gitlab_domain: "gitlab.{{ base_domain }}"
+gitlab_registry_domain: "registry.{{ gitlab_domain }}"
+
+gitlab_docker_project: "gitlab"
+gitlab_docker_dir: "/etc/docker-compose/{{ gitlab_docker_project }}"
+gitlab_data_dir: "/data/{{ gitlab_docker_project }}"
+
+gitlab_ssh_port: "22240"
+
+gitlab_email_from: "gitlab@{{ base_domain }}"
+gitlab_email_display_name: "{{ base_domain }} GitLab"
+gitlab_email_reply_to: "{{ gitlab_email_from }}"
+gitlab_smtp_address: "{{ smtp_host }}"
+gitlab_smtp_port: "{{ smtp_port | default(465) }}"
+
+traefik_docker_network: "traefik"
+gitlab_systemd_start: true

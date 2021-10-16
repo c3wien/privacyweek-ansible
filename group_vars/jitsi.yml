@@ -1,0 +1,30 @@
+
+
+# jitsi-meet server
+jitsi_meet_server_name: "{{ event_domains.jitsi }}"
+jitsi_generate_letsencrypt: true
+
+prometheus_jitsi_meet_exporter_version: 1.1.6
+prometheus_jitsi_meet_exporter_videobridge_url: http://localhost:8080/colibri/stats
+prometheus_jitsi_meet_exporter_listen: ':9888'
+rometheus_jitsi_meet_exporter_checksum_url: https://github.com/systemli/prometheus-jitsi-meet-exporter/releases/download/{{ prometheus_jitsi_meet_exporter_version }}/checksums.txt
+
+jitsi_meet_config:
+  maxFullResolutionParticipants: 3
+  userDocumentationURL: "https://projekte.c3w.at/vortragende_how_to_eng"
+  backgroundAlpha: 1
+  hiddenDomain: "recorder.{{ jitsi_meet_server_name }}"
+  noticeMessage: "Welcome to {{ event_name }}"
+  enableClosePage: true
+
+jitsi_interface_config:
+  BRAND_WATERMARK_LINK: "https://{{ event_domains.base }}/"
+  JITSI_WATERMARK_LINK: "https://{{ event_domains.base }}/"
+  DEFAULT_BACKGROUND: "#1c234c"
+  DEFAULT_LOCAL_DISPLAY_NAME: "me"
+  DEFAULT_REMOTE_DISPLAY_NAME: "Video Participant"
+  CLOSE_PAGE_GUEST_HINT: "Sie haben eine einfache Winkekatze sehr gl&uuml;cklich gemacht."
+  ENFORCE_NOTIFICATION_AUTO_DISMISS_TIMEOUT: true
+  GENERATE_ROOMNAMES_ON_WELCOME_PAGE: false
+  APP_NAME: "PrivacyWeek Video Conferencing"
+  PROVIDER_NAME: "PrivacyWeek.at"

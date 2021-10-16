@@ -1,0 +1,9 @@
+---
+
+bbb_exporter_docker_project: "bbb-exporter"
+bbb_exporter_docker_dir: "/etc/docker-compose/{{ bbb_exporter_docker_project }}"
+
+bbb_exporter_systemd_start: true
+
+# bbb_exporter_api_base_url
+# bbb_exporter_api_secret

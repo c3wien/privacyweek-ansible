@@ -1,0 +1,10 @@
+---
+# HP ProDesk G2 DM USFF
+
+desktop_extend_virtual: true
+
+pulseaudio_card: 'alsa_card.pci-0000_00_1f.3'
+pulseaudio_card_profile: 'output:hdmi-stereo+input:analog-stereo'
+pulseaudio_sink: 'alsa_output.pci-0000_00_1f.3.hdmi-stereo'
+
+remotestudio_jitsi_client_ws_workername: "jitsi1"

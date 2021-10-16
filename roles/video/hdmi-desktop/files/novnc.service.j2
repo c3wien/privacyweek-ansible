@@ -1,0 +1,13 @@
+[Unit]
+Description=Your Daemon
+After=network-online.target
+Wants=network-online.target systemd-networkd-wait-online.service
+
+[Service]
+Restart=on-failure
+RestartSec=1s
+
+ExecStart=/usr/share/novnc/utils/launch.sh --vnc "localhost:5900" --listen {{ desktop_novnc_port }}
+
+[Install]
+WantedBy=multi-user.target

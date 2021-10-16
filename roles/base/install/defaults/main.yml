@@ -3,3 +3,6 @@
 ssh_port: 22
 username: "debian"
 hostname: "{{ inventory_hostname_short }}"
+
+prometheus_node_exporter: false
+prometheus_node_exporter_subnets: []
