@@ -34,7 +34,7 @@ prometheus_grafana_enabled: true
 bbb_exporter_api_base_url: "https://{{ event_domains.bbb }}/bigbluebutton/api/"
 bbb_exporter_api_secret: "${API_SECRET}"
 # force same instance label as node-exporter
-bbb_exporter_label_instance: '{{ event_domains.bbb }}:9100'
+bbb_exporter_label_instance: '{{ event_domains.bbb }}'
 
 # prometheus configs
 # update with:
@@ -48,15 +48,26 @@ prometheus_scrape_configs:
         - "cloud.privacyweek.at:9100"
         - "pw21-jitsi:9100"
         - "pw21-runner:9100"
+        - "pw21-obs1:9100"
+        - "pw21-obs2:9100"
+        - "pw21-obs3:9100"
+        - "pw21-encoder:9100"
         labels:
           source: node-exporter
+    relabel_configs:
+      - action: replace
+        regex: (.+):(\d+)
+        replacement: $1
+        source_labels:
+        - __address__
+        target_label: instance
   - job_name: "jitsi-exporter"
     static_configs:
       - targets:
         - "pw21-jitsi:9888"
         labels:
           source: jitsi-exporter
-          instance: 'pw21-jitsi:9100'
+          instance: "pw21-jitsi"
 
 prometheus_alert_rules:
   - alert: BigBlueButtonApiDown

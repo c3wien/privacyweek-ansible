@@ -1,5 +1,7 @@
 ---
 
+desktop_driver: nouveau
+desktop_force_output: "DVI-I-1"
 decklink_device: 'DeckLink Mini Recorder'
 decklink_format_code: 'hp50'
 

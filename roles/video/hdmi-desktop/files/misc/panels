@@ -37,12 +37,6 @@ Plugin {
     item {
       command=run
     }
-    separator {
-    }
-    item {
-      image=gnome-logout
-      command=logout
-    }
   }
 }
 Plugin {

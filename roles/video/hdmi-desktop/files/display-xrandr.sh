@@ -3,7 +3,7 @@
 # ANSIBLE MANAGED FILE
 
 # set link resolution
-for VAR in "$(xrandr | egrep "^HDMI.* connected" | awk '{print $1}')"; do
+for VAR in "{{ desktop_force_output | default("$(xrandr | egrep '^HDMI.* connected' | awk '{print $1}')") }}"; do
 	echo "setting output $VAR"
 {% if desktop_extend_virtual == true %}
 	xrandr --output $VAR --mode {{ desktop_resolution_mode }} --rate {{ desktop_resolution_rate }}
